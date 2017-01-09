@@ -1,6 +1,6 @@
 package com.dalonedrow.module.ff.rpg;
 
-import com.dalonedrow.module.ff.constants.FFIo;
+import com.dalonedrow.module.ff.constants.FFEquipmentSlots;
 import com.dalonedrow.rpg.base.flyweights.InventoryData;
 
 /**
@@ -13,7 +13,7 @@ public final class FFInventory
 	/** Creates a new instance of {@link FFInventory}. */
 	public FFInventory() {
 		FFInventorySlot[] slots =
-				new FFInventorySlot[FFIo.INV_SLOTS];
+				new FFInventorySlot[FFEquipmentSlots.getNumberOfValues()];
 		for (int i = 0; i < slots.length; i++) {
 			slots[i] = new FFInventorySlot();
 		}
