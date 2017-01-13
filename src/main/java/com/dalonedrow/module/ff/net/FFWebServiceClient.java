@@ -93,7 +93,6 @@ public final class FFWebServiceClient extends WebServiceClient {
             sb.append(itemName.replaceAll(" ", "%20"));
             String response = getResponse(sb.toString());
             sb.setLength(0);
-            System.out.println(response);
             Gson gson = new Gson();
             JsonObject obj = gson.fromJson(
                     response, JsonArray.class).get(0).getAsJsonObject();
@@ -164,8 +163,7 @@ public final class FFWebServiceClient extends WebServiceClient {
                     | IllegalArgumentException | InvocationTargetException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            sb.setLength(0);
-            
+            sb.setLength(0);            
         } catch (PooledException | ClassNotFoundException e) {
             throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
         }
@@ -204,7 +202,6 @@ public final class FFWebServiceClient extends WebServiceClient {
             String response = getResponse(sb.toString());
             Gson gson = new Gson();
             JsonArray results = gson.fromJson(response, JsonArray.class);
-            System.out.println(results);
             modifier = gson.fromJson(
                     results.get(0), EquipmentItemModifier.class);
         } catch (JsonSyntaxException | PooledException e) {
