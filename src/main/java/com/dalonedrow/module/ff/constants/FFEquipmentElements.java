@@ -34,7 +34,7 @@ public class FFEquipmentElements {
         for (int i = results.size() - 1; i >= 0; i--) {
             JsonObject obj = results.get(i).getAsJsonObject();
             FFEquipmentElements element;
-            if (obj.has("index")) {
+            if (obj.has("value")) {
                 element = new FFEquipmentElements(obj.get("code").getAsString(),
                         obj.get("value").getAsInt());
             } else {

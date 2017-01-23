@@ -33,6 +33,11 @@ public final class FFScript extends
 	public FFScript() {
 		master = ((FFInteractive) Interactive.getInstance()).getMasterScript();
 		eventStackInit();
+		super.setMaxTimerScript(100);
+		scriptTimers = new FFScriptTimer[super.getMaxTimerScript()];
+		for (int i = super.getMaxTimerScript() - 1; i >= 0; i--) {
+		    scriptTimers[i] = new FFScriptTimer();
+		}
 		super.setInstance(this);
 	}
 	/**

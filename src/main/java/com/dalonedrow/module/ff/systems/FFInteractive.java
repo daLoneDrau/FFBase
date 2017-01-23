@@ -98,7 +98,7 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
     }
     /**
      * Gets a new Player IO
-     * @return {@link BDDIO}
+     * @return {@link FFInteractiveObject}
      * @throws RPGException
      */
     public final FFInteractiveObject newHero()
@@ -110,14 +110,25 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         return io;
     }
     /**
-     * Gets a new Player IO
-     * @return {@link BDDIO}
+     * Gets a new Item IO
+     * @return {@link FFInteractiveObject}
      * @throws RPGException
      */
     public final FFInteractiveObject newItem()
             throws RPGException {
         FFInteractiveObject io = getNewIO();
         io.addIOFlag(IoGlobals.IO_02_ITEM);
+        return io;
+    }
+    /**
+     * Gets a new Item IO
+     * @return {@link FFInteractiveObject}
+     * @throws RPGException
+     */
+    public final FFInteractiveObject newNPC()
+            throws RPGException {
+        FFInteractiveObject io = getNewIO();
+        io.addIOFlag(IoGlobals.IO_03_NPC);
         return io;
     }
 }

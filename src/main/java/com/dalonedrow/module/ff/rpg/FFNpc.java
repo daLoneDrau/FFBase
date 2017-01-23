@@ -77,8 +77,7 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
     }
     @Override
     protected Object[][] getAttributeMap() {
-        // TODO Auto-generated method stub
-        return null;
+        return attributeMap;
     }
     /**
      * {@inheritDoc}
@@ -132,5 +131,10 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
     protected void stopIdleAnimation() {
         // TODO Auto-generated method stub
 
+    }
+    @Override
+    public void ARX_EQUIPMENT_RecreatePlayerMesh() {
+        // TODO Auto-generated method stub
+        
     }
 }

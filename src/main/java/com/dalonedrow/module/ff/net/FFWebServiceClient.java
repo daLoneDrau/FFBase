@@ -12,6 +12,7 @@ import com.dalonedrow.engine.systems.base.JOGLErrorHandler;
 import com.dalonedrow.module.ff.constants.FFEquipmentElements;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFItem;
+import com.dalonedrow.module.ff.rpg.FFNpc;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
 import com.dalonedrow.module.ff.systems.FFInteractive;
 import com.dalonedrow.net.WebServiceClient;
@@ -32,6 +33,7 @@ import com.google.gson.JsonSyntaxException;
 /**
  * @author drau
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public final class FFWebServiceClient extends WebServiceClient {
     /** the singleton instance of {@link FFWebServiceClient}. */
     private static FFWebServiceClient instance;
@@ -78,6 +80,12 @@ public final class FFWebServiceClient extends WebServiceClient {
         sb.returnToPool();
         sb = null;
     }
+    /**
+     * Loads an item by its name.
+     * @param itemName the item's name
+     * @return {@link FFInteractiveObject}
+     * @throws RPGException if an error occurs
+     */
     public FFInteractiveObject loadItem(final String itemName)
             throws RPGException {
         PooledStringBuilder sb =
@@ -164,6 +172,104 @@ public final class FFWebServiceClient extends WebServiceClient {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
             sb.setLength(0);            
+        } catch (PooledException | ClassNotFoundException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        sb.returnToPool();
+        sb = null;
+        Script.getInstance().sendInitScriptEvent(io);
+        return io;
+    }
+    /**
+     * Loads an item by its name.
+     * @param npcName the item's name
+     * @return {@link FFInteractiveObject}
+     * @throws RPGException if an error occurs
+     */
+    public FFInteractiveObject loadNPC(final String npcName)
+            throws RPGException {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        FFInteractiveObject io =
+                ((FFInteractive) FFInteractive.getInstance()).newNPC();
+        try {
+            FFNpc npcData = new FFNpc();
+            io.setNPCData(npcData);
+            sb.append(super.getApiProperties().getProperty("endpoint"));
+            sb.append(super.getApiProperties().getProperty("npcApi"));
+            sb.append("name/");
+            sb.append(npcName.replaceAll(" ", "%20"));
+            String response = getResponse(sb.toString());
+            sb.setLength(0);
+            Gson gson = new Gson();
+            JsonObject obj = gson.fromJson(
+                    response, JsonArray.class).get(0).getAsJsonObject();
+            //*************************************************
+            // title
+            //*************************************************
+            if (obj.has("title")) {
+                npcData.setTitle(obj.get("title").getAsString());
+            } else {
+                npcData.setTitle("");
+            }
+            //*************************************************
+            // name
+            //*************************************************
+            if (obj.has("name")) {
+                npcData.setName(obj.get("name").getAsString());
+            } else {
+                npcData.setName("");
+            }
+            //*************************************************
+            // gender
+            //*************************************************
+            if (obj.has("gender")) {
+                String genName =
+                        obj.getAsJsonObject("gender").get("name").getAsString();
+                if (genName.equalsIgnoreCase("male")) {
+                    npcData.setGender(0);
+                } else {
+                    npcData.setGender(1);
+                }
+                genName = null;
+            }
+            //*************************************************
+            // attributes
+            //*************************************************
+            if (obj.has("attributes")) {
+                JsonObject attributes = obj.get("attributes").getAsJsonObject();
+                Set<Entry<String, JsonElement>> entries = attributes.entrySet();
+                for (Entry<String, JsonElement> entry: entries) {
+                    npcData.setBaseAttributeScore(
+                            entry.getKey(), entry.getValue().getAsInt());
+                }
+                attributes = null;
+                entries = null;
+            }
+            //*************************************************
+            // internal_script
+            //*************************************************
+            sb.append("com.dalonedrow.module.ff.scripts.npcs.");
+            sb.append(obj.get("internal_script").getAsString());
+            Class internalScript = Class.forName(sb.toString());
+            try {
+                Constructor con = internalScript.getConstructor(FFInteractiveObject.class);
+                FFScriptable script = (FFScriptable) con.newInstance(io);
+                io.setScript(script);
+            } catch (NoSuchMethodException | SecurityException
+                    | InstantiationException | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            sb.setLength(0);
+            //*************************************************
+            // weapon
+            //*************************************************
+            if (obj.has("weapon")) {
+                FFInteractiveObject wpnIO =
+                        loadItem(obj.get("weapon").getAsString());
+                wpnIO.getItemData().ARX_EQUIPMENT_Equip(io);
+            }
         } catch (PooledException | ClassNotFoundException e) {
             throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
         }
