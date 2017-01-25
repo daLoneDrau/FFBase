@@ -137,4 +137,9 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
         // TODO Auto-generated method stub
         
     }
+    @Override
+    public int getPoisonned() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }
