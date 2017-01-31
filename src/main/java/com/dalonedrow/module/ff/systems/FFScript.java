@@ -29,8 +29,9 @@ public final class FFScript extends
 	private FFStackedEvent[]			postScriptStack;
 	/** the list of script timers. */
 	private FFScriptTimer[]				scriptTimers;
-	/** Creates a new instance of {@link FFScript}. */
-	public FFScript() {
+	/** Creates a new instance of {@link FFScript}. 
+	 * @throws RPGException */
+	public FFScript() throws RPGException {
 		master = ((FFInteractive) Interactive.getInstance()).getMasterScript();
 		eventStackInit();
 		super.setMaxTimerScript(100);
@@ -38,6 +39,9 @@ public final class FFScript extends
 		for (int i = super.getMaxTimerScript() - 1; i >= 0; i--) {
 		    scriptTimers[i] = new FFScriptTimer();
 		}
+		// init global params
+        super.setGlobalVariable("PLAYERCASTING", 0);
+        super.setGlobalVariable("COMBATROUND", 0);
 		super.setInstance(this);
 	}
 	/**

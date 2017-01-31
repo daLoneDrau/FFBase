@@ -12,4 +12,19 @@ public final class FFItem extends IOItemData<FFInteractiveObject> {
 	public FFItem() {
 		super.setEquipitem(new IOEquipItem());
 	}
+
+    @Override
+    protected float applyCriticalModifier() {
+        return 0;
+    }
+
+    @Override
+    protected float calculateArmorDeflection() {
+        return 0;
+    }
+
+    @Override
+    protected float getBackstabModifier() {
+        return 0;
+    }
 }

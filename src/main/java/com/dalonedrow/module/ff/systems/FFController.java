@@ -7,8 +7,15 @@ import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.rpg.base.constants.EquipmentGlobals;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
-public class FFController extends ProjectConstants<FFInteractiveObject> {
-    private int playerId;
+public final class FFController extends ProjectConstants<FFInteractiveObject> {
+    /** the player IO's id. */
+    private int playerId = -1;
+    /**
+     * @param val the value to set
+     */
+    void setPlayer(int val) {
+        this.playerId = val;
+    }
     /**
      *
      */
@@ -35,7 +42,6 @@ public class FFController extends ProjectConstants<FFInteractiveObject> {
     }
     @Override
     public int getPlayer() throws RPGException {
-        // TODO Auto-generated method stub
         return playerId;
     }
     public FFInteractiveObject getPlayerIO() throws RPGException {
@@ -46,5 +52,15 @@ public class FFController extends ProjectConstants<FFInteractiveObject> {
     public void update() {
         // TODO Auto-generated method stub
 
+    }
+    @Override
+    public int getConsoleHeight() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    @Override
+    public int getConsoleWidth() {
+        // TODO Auto-generated method stub
+        return 0;
     }
 }

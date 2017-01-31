@@ -1,6 +1,5 @@
 package com.dalonedrow.module.ff.rpg;
 
-import com.dalonedrow.engine.systems.base.Diceroller;
 import com.dalonedrow.module.ff.constants.FFEquipmentElements;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.pooled.PooledException;
@@ -31,9 +30,11 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
             { "LK", "Luck",
                     FFEquipmentElements.valueOf("ELEMENT_LUCK").getIndex() },
             { "MLK", "Max Luck",
-                    FFEquipmentElements.valueOf("ELEMENT_MAX_LUCK").getIndex() },
+                    FFEquipmentElements.valueOf("ELEMENT_MAX_LUCK")
+                            .getIndex() },
             { "DMG", "Damage",
-                    FFEquipmentElements.valueOf("ELEMENT_DAMAGE").getIndex() } };
+                    FFEquipmentElements.valueOf("ELEMENT_DAMAGE")
+                            .getIndex() } };
     /** flag indicating pretty printing has been turned on. */
     private boolean prettyPrinting;
     private boolean REFUSE_GAME_RETURN;
@@ -70,6 +71,14 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
+    @Override
+    public boolean calculateBackstab() {
+        return false;
+    }
+    @Override
+    public boolean calculateCriticalHit() {
+        return false;
+    }
     /**
      * {@inheritDoc}
      */
@@ -96,6 +105,10 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
     protected float getBaseMana() {
         // TODO Auto-generated method stub
         return 0;
+    }
+    @Override
+    public float getFullDamage() {
+        return super.getFullAttributeScore("DMG");
     }
     @Override
     protected String getLifeAttribute() {

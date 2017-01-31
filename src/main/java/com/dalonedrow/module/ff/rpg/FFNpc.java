@@ -67,11 +67,34 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
+    @Override
+    public void ARX_EQUIPMENT_RecreatePlayerMesh() {
+        // TODO Auto-generated method stub
+
+    }
     /**
      * {@inheritDoc}
      */
     @Override
     public void ARX_NPC_ManagePoison() {
+        // TODO Auto-generated method stub
+
+    }
+    @Override
+    protected void awardXpForNpcDeath(int xp, FFInteractiveObject killerIO) {
+        // NO XP
+    }
+    @Override
+    public boolean calculateBackstab() {
+        return false;
+    }
+    @Override
+    public boolean calculateCriticalHit() {
+        return false;
+    }
+    @Override
+    protected void damageNonLivingNPC(float dmg, int srcIoid,
+            boolean isSpellDamage) throws RPGException {
         // TODO Auto-generated method stub
 
     }
@@ -91,6 +114,15 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
      */
     @Override
     public float getBaseMana() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    @Override
+    public float getFullDamage() {
+        return super.getFullAttributeScore("DMG");
+    }
+    @Override
+    public int getPoisonned() {
         // TODO Auto-generated method stub
         return 0;
     }
@@ -131,15 +163,5 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
     protected void stopIdleAnimation() {
         // TODO Auto-generated method stub
 
-    }
-    @Override
-    public void ARX_EQUIPMENT_RecreatePlayerMesh() {
-        // TODO Auto-generated method stub
-        
-    }
-    @Override
-    public int getPoisonned() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 }

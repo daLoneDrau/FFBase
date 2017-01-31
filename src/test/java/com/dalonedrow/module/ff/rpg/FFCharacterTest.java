@@ -22,7 +22,7 @@ import com.dalonedrow.rpg.base.flyweights.RPGException;
 
 public class FFCharacterTest {
     @Before
-    public void before() throws IOException {
+    public void before() throws IOException, RPGException {
         new FFController();
         new FFInteractive();
         new FFScript();

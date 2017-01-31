@@ -4,10 +4,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import com.dalonedrow.engine.systems.base.Interactive;
+import com.dalonedrow.engine.systems.base.ProjectConstants;
 import com.dalonedrow.module.ff.rpg.FFCharacter;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFItem;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
+import com.dalonedrow.module.ff.scripts.pc.Hero;
 import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
@@ -107,6 +109,9 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         io.addIOFlag(IoGlobals.IO_01_PC);
         io.setPCData(new FFCharacter());
         io.getPCData().newHero();
+        ((FFController)
+                ProjectConstants.getInstance()).setPlayer(io.getRefId());
+        io.setScript(new Hero(io));
         return io;
     }
     /**
