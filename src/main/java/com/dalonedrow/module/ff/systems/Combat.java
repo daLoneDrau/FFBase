@@ -13,10 +13,15 @@ import com.dalonedrow.rpg.base.constants.EquipmentGlobals;
 import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
+import com.dalonedrow.rpg.base.flyweights.SpeechParameters;
 import com.dalonedrow.rpg.base.systems.CombatUtility;
 import com.dalonedrow.rpg.base.systems.Script;
 import com.dalonedrow.utils.ArrayUtilities;
 
+/**
+ * @author 588648
+ */
+@SuppressWarnings("unchecked")
 public final class Combat extends CombatUtility<FFInteractiveObject> {
     private static final int HIT_LUK = 1;
     private static final int HIT_STD = 0;
@@ -136,61 +141,59 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
         messages = new String[0];
         messageTypes = new int[0];
     }
-    private void createHitLuckMessage(final String source,
-            final String target, final int damage) throws RPGException {
+    private String createHitLuckyMessage(final String source,
+            final String target) throws RPGException {
+        String s;
         switch (Diceroller.getInstance().rolldX(3)) {
         case 1:
-            addMessage(MESSAGE_STANDARD,
-                    String.format(
-                            "Your %s goes snicker-snack! causing %d damage.",
-                            source, damage));
+            s = String.format("Your %s goes snicker-snack! causing %s damage.",
+                    source, "%d");
             break;
         case 2:
             PooledStringBuilder sb =
                     StringBuilderPool.getInstance().getStringBuilder();
             try {
-                sb.append("You swing your %s in a savage fury; ");
-                sb.append("%s takes %d damage.");
+                sb.append("Burbling as you come you strike swiftly; ");
+                sb.append("%s takes %s damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), source, target, damage));
+            s = String.format(sb.toString(), target, "%d");
             sb.returnToPool();
             sb = null;
             break;
         default:
             sb = StringBuilderPool.getInstance().getStringBuilder();
             try {
-                sb.append("Like a pitiless croupier you deal your ");
-                sb.append("manxome foe %d points of damage.");
+                sb.append("Like a pitiless croupier you deal %s a losing ");
+                sb.append("hand: %s hearts of damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD, String.format(sb.toString(), damage));
+            s = String.format(sb.toString(), target, "%d");
             sb.returnToPool();
             sb = null;
             break;
         }
+        return s;
     }
-    private void createHitMessage(final String target, final int damage)
+    private String createHitMessage(final String target)
             throws RPGException {
+        String s;
         switch (Diceroller.getInstance().rolldX(3)) {
         case 1:
-            addMessage(MESSAGE_STANDARD,
-                    String.format("You hit %s for %d damage.", target, damage));
+            s = String.format("You hit %s for %s damage.", target, "%d");
             break;
         case 2:
             PooledStringBuilder sb =
                     StringBuilderPool.getInstance().getStringBuilder();
             try {
                 sb.append("%s is becoming worn out by your relentless ");
-                sb.append("attacks and takes %d damage.");
+                sb.append("attacks and takes %s damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), target, damage));
+            s = String.format(sb.toString(), target, "%d");
             sb.returnToPool();
             sb = null;
             break;
@@ -198,35 +201,121 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
             sb = StringBuilderPool.getInstance().getStringBuilder();
             try {
                 sb.append("You bypass the enemy's guard and strike %s for ");
-                sb.append("%d damage.");
+                sb.append("%s damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), target, damage));
+            s = String.format(sb.toString(), target, "%d");
             sb.returnToPool();
             sb = null;
             break;
         }
+        return s;
     }
-    private void createHurtMessage(final String source, final int damage)
-            throws RPGException {
+    private String createHitUnluckyMessage(final String source,
+            final String target) throws RPGException {
+        String s;
         switch (Diceroller.getInstance().rolldX(3)) {
         case 1:
-            addMessage(MESSAGE_STANDARD,
-                    String.format("%s hits you for %d damage.", source, damage));
+            PooledStringBuilder sb =
+                    StringBuilderPool.getInstance().getStringBuilder();
+            try {
+                sb.append("Your attack is off-balance, striking %s ");
+                sb.append("without much force; %s damage.");
+            } catch (PooledException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            s = String.format(sb.toString(), target, "%d");
+            sb.returnToPool();
+            sb = null;
+            break;
+        case 2:
+            sb = StringBuilderPool.getInstance().getStringBuilder();
+            try {
+                sb.append("%s rolls with your blow, ");
+                sb.append("lessening the damage to %s point.");
+            } catch (PooledException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            s = String.format(sb.toString(), target, "%d");
+            sb.returnToPool();
+            sb = null;
+            break;
+        default:
+            sb = StringBuilderPool.getInstance().getStringBuilder();
+            try {
+                sb.append("You swing your %s wildly, landing at an awkward ");
+                sb.append("angle; %s takes %s damage.");
+            } catch (PooledException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            s = String.format(sb.toString(), source, target, "%d");
+            sb.returnToPool();
+            sb = null;
+            break;
+        }
+        return s;
+    }
+    private String createHurtLuckyMessage(final String source,
+            final String weapon) throws RPGException {
+        String s;
+        switch (Diceroller.getInstance().rolldX(3)) {
+        case 1:
+            PooledStringBuilder sb =
+                    StringBuilderPool.getInstance().getStringBuilder();
+            try {
+                sb.append("The %s strikes you a glancing blow for %s damage.");
+            } catch (PooledException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            s = String.format(sb.toString(), source, "%d");
+            sb.returnToPool();
+            sb = null;
+            break;
+        case 2:
+            sb = StringBuilderPool.getInstance().getStringBuilder();
+            try {
+                sb.append("You dodge most of the %s, but the edge of it ");
+                sb.append("catches your ribs for %s damage.");
+            } catch (PooledException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            s = String.format(sb.toString(), weapon, "%d");
+            sb.returnToPool();
+            sb = null;
+            break;
+        default:
+            sb = StringBuilderPool.getInstance().getStringBuilder();
+            try {
+                sb.append("%s catches you off-guard, but without much force ");
+                sb.append("behind the strike you only take %s damage.");
+            } catch (PooledException e) {
+                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+            }
+            s = String.format(sb.toString(), source, "%d");
+            sb.returnToPool();
+            sb = null;
+            break;
+        }
+        return s;
+    }
+    private String createHurtMessage(final String source)
+            throws RPGException {
+        String s;
+        switch (Diceroller.getInstance().rolldX(3)) {
+        case 1:
+            s = String.format("%s hits you for %s damage.", source, "%d");
             break;
         case 2:
             PooledStringBuilder sb =
                     StringBuilderPool.getInstance().getStringBuilder();
             try {
                 sb.append("%s shifts their weight and then suddenly ");
-                sb.append("launches an attack; you take %d damage.");
+                sb.append("launches an attack; you take %s damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), source, damage));
+            s = String.format(sb.toString(), source, "%d");
             sb.returnToPool();
             sb = null;
             break;
@@ -234,30 +323,31 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
             sb = StringBuilderPool.getInstance().getStringBuilder();
             try {
                 sb.append("You retreat slightly after that last blow gave ");
-                sb.append("you %d points of damage; %s looks confident.");
+                sb.append("you %s points of damage; %s looks confident.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), damage, source));
+            s = String.format(sb.toString(), "%d", source);
             sb.returnToPool();
             sb = null;
             break;
         }
+        return s;
     }
-    private void createHurtUnluckyMessage(final String source, 
-            final String weapon, final int damage) throws RPGException {
+    private String createHurtUnluckyMessage(final String source,
+            final String weapon) throws RPGException {
+        String s;
         switch (Diceroller.getInstance().rolldX(3)) {
         case 1:
             PooledStringBuilder sb =
-            StringBuilderPool.getInstance().getStringBuilder();
+                    StringBuilderPool.getInstance().getStringBuilder();
             try {
-                sb.append("The %s sinks into your flesh; %d damage taken.");
+                sb.append("The manxome foe's %s goes through and through; ");
+                sb.append("%s damage taken.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), damage, source));
+            s = String.format(sb.toString(), weapon, "%d");
             sb.returnToPool();
             sb = null;
             break;
@@ -266,12 +356,11 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
             try {
                 sb.append("Moving swifter than you would have thought ");
                 sb.append("possible, %s deals you a painful blow. ");
-                sb.append("You take %d damage.");
+                sb.append("You take %s damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), source, damage));
+            s = String.format(sb.toString(), source, "%d");
             sb.returnToPool();
             sb = null;
             break;
@@ -279,105 +368,16 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
             sb = StringBuilderPool.getInstance().getStringBuilder();
             try {
                 sb.append("You rush at the %s but a flurry of blows forces ");
-                sb.append("you back; you take %d points of damage.");
+                sb.append("you back; you take %s points of damage.");
             } catch (PooledException e) {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), source, damage));
+            s = String.format(sb.toString(), source, "%d");
             sb.returnToPool();
             sb = null;
             break;
         }
-    }
-    private void createHurtLuckyMessage(final String source, 
-            final String weapon, final int damage) throws RPGException {
-        switch (Diceroller.getInstance().rolldX(3)) {
-        case 1:
-            PooledStringBuilder sb =
-            StringBuilderPool.getInstance().getStringBuilder();
-            try {
-                sb.append("The %s strikes you a glancing blow for %d damage.");
-            } catch (PooledException e) {
-                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-            }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), source, damage));
-            sb.returnToPool();
-            sb = null;
-            break;
-        case 2:
-            sb = StringBuilderPool.getInstance().getStringBuilder();
-            try {
-                sb.append("You dodge most of the %s, but the edge of it ");
-                sb.append("catches your ribs for %d damage.");
-            } catch (PooledException e) {
-                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-            }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), weapon, damage));
-            sb.returnToPool();
-            sb = null;
-            break;
-        default:
-            sb = StringBuilderPool.getInstance().getStringBuilder();
-            try {
-                sb.append("%s catches you off-guard, but without much force ");
-                sb.append("behind the strike you only take %d damage.");
-            } catch (PooledException e) {
-                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-            }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), source, damage));
-            sb.returnToPool();
-            sb = null;
-            break;
-        }
-    }
-    private void createHitUnluckyMessage(final String source,
-            final String target, final int damage) throws RPGException {
-        switch (Diceroller.getInstance().rolldX(3)) {
-        case 1:
-            PooledStringBuilder sb =
-                    StringBuilderPool.getInstance().getStringBuilder();
-            try {
-                sb.append("Your attack is off-balance, striking %s ");
-                sb.append("without much force; %d damage.");
-            } catch (PooledException e) {
-                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-            }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), target, damage));
-            sb.returnToPool();
-            sb = null;
-            break;
-        case 2:
-            sb = StringBuilderPool.getInstance().getStringBuilder();
-            try {
-                sb.append("%s rolls with your blow, ");
-                sb.append("lessening the damage to %d point.");
-            } catch (PooledException e) {
-                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-            }
-            addMessage(MESSAGE_STANDARD,
-                    String.format(sb.toString(), target, damage));
-            sb.returnToPool();
-            sb = null;
-            break;
-        default:
-            sb = StringBuilderPool.getInstance().getStringBuilder();
-            try {
-                sb.append("You swing your %s wildly, landing at an awkward ");
-                sb.append("angle; %s takes %d damage.");
-            } catch (PooledException e) {
-                throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-            }
-            addMessage(MESSAGE_STANDARD, String.format(sb.toString(),
-                    source, target, damage));
-            sb.returnToPool();
-            sb = null;
-            break;
-        }
+        return s;
     }
     @Override
     public void doRound() throws RPGException {
@@ -386,7 +386,6 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
                         + 1);
         if (enemies.length > 0) {
             String source, target;
-            float damage;
             int msgMode;
             // 1. get creature's Attack Strength.
             FFInteractiveObject enemyIO = enemies[0].getNPCData().getIo();
@@ -475,35 +474,49 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
                     throw new RPGException(ErrorMessage.INTERNAL_ERROR,
                             "Attacker has no weapon!");
                 }
-                damage = wpnIO.getItemData().ARX_EQUIPMENT_ComputeDamages(
-                        srcIO, trgtIO, luckMod);
+                String s;
                 switch (msgMode) {
                 case HIT_STD:
-                    createHitMessage(target, (int) damage);
+                    s = createHitMessage(target);
                     break;
                 case HIT_LUK:
-                    createHitLuckMessage(source, target, (int) damage);
+                    s = createHitLuckyMessage(source, target);
                     break;
                 case HIT_UNLUK:
-                    createHitUnluckyMessage(source, target, (int) damage);
+                    s = createHitUnluckyMessage(source, target);
                     break;
                 case HURT_STD:
-                    createHurtMessage(source, (int) damage);
+                    s = createHurtMessage(source);
                     break;
                 case HURT_LUK:
-                    createHurtLuckyMessage(source, target, (int) damage);
+                    s = createHurtLuckyMessage(source, target);
                     break;
-                case HURT_UNLUK:
-                    createHurtUnluckyMessage(source, target, (int) damage);
+                default:
+                    s = createHurtUnluckyMessage(source, target);
                     break;
                 }
+                enemyIO.getScript().setLocalVariable("combat_message", s);
+                playerIO.getScript().setLocalVariable("combat_message", s);
+                wpnIO.getItemData().ARX_EQUIPMENT_ComputeDamages(
+                        srcIO, trgtIO, luckMod);
+                enemyIO.getScript().setLocalVariable("combat_message", "");
+                playerIO.getScript().setLocalVariable("combat_message", "");
             } else {
-                endRound();
+                Script.getInstance().speak(
+                        playerIO, new SpeechParameters("", "You both miss."));
             }
         }
+        endRound();
     }
     private void endRound() {
         clearExcessMessages();
+        // check to see if combat is over.
+        int i = enemies.length - 1;
+        for (; i >= 0; i--) {
+            if (enemies[i].getNPCData().IsDeadNPC()) {
+                enemies = ArrayUtilities.getInstance().removeIndex(i, enemies);
+            }
+        }
     }
     /**
      * Gets the value for the messages.
@@ -511,6 +524,16 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
      */
     public String[] getMessages() {
         return messages;
+    }
+    public boolean isOver() throws RPGException {
+        boolean over = false;
+        if (((FFController) FFController.getInstance()).getPlayerIO().getPCData().getFullAttributeScore("ST") <= 0f) {
+            over = true;
+        }
+        if (!over) {
+            over = enemies.length == 0;
+        }
+        return over;
     }
     private void removeEnemy(final FFInteractiveObject io) throws RPGException {
         int index = -1;

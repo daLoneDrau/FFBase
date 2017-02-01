@@ -164,4 +164,8 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
+    @Override
+    public float getMaxLife() {
+        return super.getBaseAttributeScore("MST");
+    }
 }

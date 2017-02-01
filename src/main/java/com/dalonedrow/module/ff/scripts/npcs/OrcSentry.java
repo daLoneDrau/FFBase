@@ -90,7 +90,7 @@ public class OrcSentry extends FFScriptable {
                                 "onPlayerEnemy", // event name
                                 null, // target name
                                 0)); // radius
-                System.out.println("PLAYER_ENEMY sent");
+                // System.out.println("PLAYER_ENEMY sent");
             }
             // kill all local timers
             Script.getInstance().timerClearAllLocalsForIO(super.getIO());
@@ -145,8 +145,6 @@ public class OrcSentry extends FFScriptable {
                         }
                         // set pathfinding to target player
                         super.setTarget(new TargetParameters("-A PLAYER"));
-                        // SETTARGET -a PLAYER
-                        System.out.println("WEAPON ON");
                         // set weapon in hand
                         // TODO - set weapon
                         super.getIO().getNPCData()
@@ -163,7 +161,7 @@ public class OrcSentry extends FFScriptable {
                 tmp -= getLocalVarLastCallForHelp();
                 if (tmp > 4) {
                     // don't call for help too often...
-                    System.out.println("CALL FOR HELP !!!");
+                    // System.out.println("CALL FOR HELP !!!");
                     if (getLocalVarFightingMode() == 2) {
                         // call all friends within 1200 unit radius
                         Script.getInstance().sendEvent(super.getIO(),
@@ -365,6 +363,9 @@ public class OrcSentry extends FFScriptable {
             }
         }
     }
+    private String getLocalSpeechAggression() throws RPGException {
+        return super.getLocalStringVariableValue("sp_aggression");
+    }
     private String getLocalSpeechDying() throws RPGException {
         return super.getLocalStringVariableValue("sp_dying");
     }
@@ -394,11 +395,17 @@ public class OrcSentry extends FFScriptable {
     private String getLocalSpeechThreat() throws RPGException {
         return super.getLocalStringVariableValue("sp_threat");
     }
+    private String getLocalSpeechVictory() throws RPGException {
+        return super.getLocalStringVariableValue("sp_victory");
+    }
     private String getLocalVarBackToGuard() throws RPGException {
         return super.getLocalStringVariableValue("back2guard");
     }
     private int getLocalVarCastingLevel() throws RPGException {
         return super.getLocalIntVariableValue("casting_lvl");
+    }
+    private String getLocalVarCombatMessage() throws RPGException {
+        return super.getLocalStringVariableValue("combat_message");
     }
     private boolean getLocalVarConfused() throws RPGException {
         return super.getLocalIntVariableValue("confused") == 1;
@@ -546,11 +553,11 @@ public class OrcSentry extends FFScriptable {
     private String getLocalVarTmpString2() throws RPGException {
         return super.getLocalStringVariableValue("tmp_string2");
     }
+    private boolean getLocalVarTotaldead() throws RPGException {
+        return super.getLocalIntVariableValue("totaldead") == 1;
+    }
     private String getLocalVarType() throws RPGException {
         return super.getLocalStringVariableValue("type");
-    }
-    private String getLocalVarVictory() throws RPGException {
-        return super.getLocalStringVariableValue("victory");
     }
     public void goBackToGuard() throws RPGException {
         Script.getInstance().sendEvent(super.getIO(),
@@ -614,6 +621,8 @@ public class OrcSentry extends FFScriptable {
      * @throws RPGException if an error occurs
      */
     private void initLocalSpeech() throws RPGException {
+        setLocalSpeechAggression(FFWebServiceClient.getInstance().loadText(
+                "orc_sentry_aggression"));
         setLocalSpeechDying(FFWebServiceClient.getInstance().loadText(
                 "orc_sentry_dying"));
         setLocalSpeechMisc("");
@@ -630,12 +639,15 @@ public class OrcSentry extends FFScriptable {
                 "orc_sentry_thief"));
         setLocalSpeechThreat(FFWebServiceClient.getInstance().loadText(
                 "orc_sentry_threat"));
+        setLocalSpeechVictory(FFWebServiceClient.getInstance().loadText(
+                "orc_sentry_victory"));
     }
     /**
      * Initializes all local variables.
      * @throws RPGException if an error occurs
      */
     private void initLocalVars() throws RPGException {
+        setLocalVarCombatMessage("");
         setLocalVarControlsOff(false);
         // if life < cowardice, NPC flees
         setLocalVarCowardice(0);
@@ -788,14 +800,14 @@ public class OrcSentry extends FFScriptable {
     }
     @Override
     public int onAggression() throws RPGException {
-        System.out.println("on agression");
+        // System.out.println("on agression");
         if (getLocalVarType().equalsIgnoreCase("human_guard_ss")) {
             Script.getInstance().setGlobalVariable("DISSIDENT_ENEMY", 1);
         }
-        if (this.getLocalVarSleeping()) {
-            this.setLocalVarSleeping(false);
+        if (getLocalVarSleeping()) {
+            setLocalVarSleeping(false);
             Script.getInstance().speak(super.getIO(),
-                    new SpeechParameters("", getLocalSpeechOuch()));
+                    new SpeechParameters("", getLocalSpeechAggression()));
         }
         ouchStart();
         return super.onAggression();
@@ -1053,7 +1065,7 @@ public class OrcSentry extends FFScriptable {
         // turn off collisions
         super.assignDisallowedEvent(ScriptConsts.DISABLE_COLLIDE_NPC);
         // SETDETECT -1
-        setLocalVarTotalDead(1);
+        setLocalVarTotalDead(true);
         if (getLocalVarType().equalsIgnoreCase("human_ylside")) {
             // TIMERsnd 1 1 PLAY "YLSIDE_DEATH"
             // SPECIALFX YLSIDE_DEATH
@@ -1602,7 +1614,7 @@ public class OrcSentry extends FFScriptable {
      */
     @Override
     public int onOuch() throws RPGException {
-        System.out.println("on ouch");
+        // System.out.println("on ouch");
         ouchStart();
         ouchSuite();
         return ScriptConsts.ACCEPT;
@@ -1695,8 +1707,8 @@ public class OrcSentry extends FFScriptable {
                     }
                 }
             }
-        } else if (super.getLocalIntVariableValue("totaldead") == 0
-                && super.getLocalIntVariableValue("fighting_mode") > 0) {
+        } else if (!getLocalVarTotaldead()
+                && getLocalVarFightingMode() > 0) {
             if (super.getLocalStringVariableValue("init_marker")
                     .equalsIgnoreCase("NONE")) {
                 // teleport to initial position
@@ -1706,10 +1718,10 @@ public class OrcSentry extends FFScriptable {
                 // teleport to init marker
                 Script.getInstance().teleport(
                         super.getIO(), false, false, false,
-                        super.getLocalStringVariableValue("£init_marker"));
+                        super.getLocalStringVariableValue("init_marker"));
             }
             // WEAPON OFF
-            super.setLocalVariable("fighting_mode", 0);
+            setLocalVarFightingMode(0);
             setLocalVarPlayerInSight(false);
             setLocalVarReflectionMode(RM_NOTHING);
             // turn hearing back on
@@ -1921,7 +1933,7 @@ public class OrcSentry extends FFScriptable {
             setLocalVarFightingMode(0);
             if (getLocalVarTmpInt1() == super.getIO().getRefId()) {
                 Script.getInstance().speak(super.getIO(),
-                        new SpeechParameters("O A", getLocalVarVictory()));
+                        new SpeechParameters("O A", getLocalSpeechVictory()));
                 // PLAYANIM -e GRUNT
                 goHome();
             } else {
@@ -2078,13 +2090,21 @@ public class OrcSentry extends FFScriptable {
      * @throws RPGException if an error occurs
      */
     private void ouchStart() throws RPGException {
-        System.out.print("OUCH ");
+        // System.out.print("OUCH ");
         float ouchDmg = getLocalVarSummonedOuch() + getLocalVarOuch();
-        System.out.print(ouchDmg);
-        int painThreshold = getLocalVarPain();
-        System.out.print(" PAIN THRESHOLD ");
-        System.out.println(painThreshold);
-        if (ouchDmg < painThreshold) {
+        // System.out.print(ouchDmg);
+        // speak combat message first
+        if (getLocalVarCombatMessage().length() > 0
+                && ouchDmg > 0) {
+            Script.getInstance().speak(super.getIO(),
+                    new SpeechParameters("",
+                            String.format(getLocalVarCombatMessage(),
+                                    (int) ouchDmg)));
+        }
+        float painThreshold = super.getIO().getNPCData().getMaxLife();
+        // System.out.print(" PAIN THRESHOLD ");
+        // System.out.println(painThreshold);
+        if (ouchDmg <= 1) {
             if (Script.getInstance()
                     .getGlobalIntVariableValue("PLAYERCASTING") == 0) {
                 // Script.getInstance().forceAnimation(HIT_SHORT);
@@ -2107,9 +2127,7 @@ public class OrcSentry extends FFScriptable {
                         Script.getInstance().getGlobalIntVariableValue(
                                 "COMBATROUND"));
             }
-            tmp = painThreshold;
-            tmp *= 3;
-            if (ouchDmg >= tmp) {
+            if (ouchDmg >= painThreshold * 0.5) {
                 if (Diceroller.getInstance().rolldX(2) == 2) {
                     // speak angrily "ouch_strong"
                     Script.getInstance().speak(super.getIO(),
@@ -2117,9 +2135,7 @@ public class OrcSentry extends FFScriptable {
                                     getLocalSpeechOuchStrong()));
                 }
             } else {
-                tmp = painThreshold;
-                tmp *= 2;
-                if (ouchDmg >= tmp) {
+                if (ouchDmg >= painThreshold * 0.25) {
                     if (Diceroller.getInstance().rolldX(2) == 2) {
                         // speak angrily "ouch_medium"
                         Script.getInstance().speak(super.getIO(),
@@ -2309,7 +2325,7 @@ public class OrcSentry extends FFScriptable {
             super.behavior(new BehaviorParameters("UNSTACK", 0));
             super.setLocalVariable("main_behavior_stacked", 0);
         } else if (!super.getLocalStringVariableValue(
-                "£init_marker").equalsIgnoreCase("NONE")) {
+                "init_marker").equalsIgnoreCase("NONE")) {
             // send NPC back to init marker
             // BEHAVIOR MOVE_TO
             super.behavior(new BehaviorParameters("MOVE_TO", 0));
@@ -2359,12 +2375,15 @@ public class OrcSentry extends FFScriptable {
                 super.setTarget(new TargetParameters("PLAYER"));
             }
             super.setLocalVariable("main_behavior_stacked", 1);
-            System.out.println("stack");
             super.behavior(new BehaviorParameters("STACK", 0));
         } else {
             // behavior already saved : clear mice target if one
             // CLEAR_MICE_TARGET
         }
+    }
+    private void setLocalSpeechAggression(final String text)
+            throws RPGException {
+        super.setLocalVariable("sp_aggression", text);
     }
     private void setLocalSpeechDying(final String text) throws RPGException {
         super.setLocalVariable("sp_dying", text);
@@ -2396,8 +2415,15 @@ public class OrcSentry extends FFScriptable {
     private void setLocalSpeechThreat(final String text) throws RPGException {
         super.setLocalVariable("sp_threat", text);
     }
+    private void setLocalSpeechVictory(final String text) throws RPGException {
+        super.setLocalVariable("sp_victory", text);
+    }
     private void setLocalVarBackToGuard(final String val) throws RPGException {
         super.setLocalVariable("back2guard", val);
+    }
+    private void setLocalVarCombatMessage(final String val)
+            throws RPGException {
+        super.setLocalVariable("combat_message", val);
     }
     private void setLocalVarConfused(final boolean val)
             throws RPGException {
@@ -2540,8 +2566,13 @@ public class OrcSentry extends FFScriptable {
     private void setLocalVarTmpString2(final String val) throws RPGException {
         super.setLocalVariable("tmp_string2", val);
     }
-    private void setLocalVarTotalDead(final int val) throws RPGException {
-        super.setLocalVariable("totaldead", val);
+    private void setLocalVarTotalDead(final boolean flag)
+            throws RPGException {
+        if (flag) {
+            super.setLocalVariable("totaldead", 1);
+        } else {
+            super.setLocalVariable("totaldead", 0);
+        }
     }
     private void setLocalVarType(final String val) throws RPGException {
         super.setLocalVariable("type", val);

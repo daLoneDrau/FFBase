@@ -28,12 +28,11 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
     private int nextId;
     /** the list of {@link FFInteractiveObject}s. */
     private FFInteractiveObject[] objs;
-
+    /** Creates a new instance of {@link FFInteractive}. */
     public FFInteractive() {
         super.setInstance(this);
         objs = new FFInteractiveObject[0];
     }
-
     @Override
     public void addAnimation(int id, int animId) throws RPGException {
         // TODO Auto-generated method stub

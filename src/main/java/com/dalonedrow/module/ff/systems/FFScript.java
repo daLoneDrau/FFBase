@@ -42,6 +42,7 @@ public final class FFScript extends
 		// init global params
         super.setGlobalVariable("PLAYERCASTING", 0);
         super.setGlobalVariable("COMBATROUND", 0);
+        super.setGlobalVariable("SHUT_UP", 0);
 		super.setInstance(this);
 	}
 	/**

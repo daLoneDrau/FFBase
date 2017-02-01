@@ -122,6 +122,10 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
         // TODO Auto-generated method stub
         return false;
     }
+    @Override
+    public float getMaxLife() {
+        return super.getBaseAttributeScore("MST");
+    }
     public void newHero() throws RPGException {
         // roll stats
         int roll = Dice.ONE_D6.roll() + 6;
@@ -135,7 +139,7 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
         super.setBaseAttributeScore("MLK", roll);
         // equip iron sword
         FFWebServiceClient.getInstance().loadItem(
-                "Iron Sword").getItemData().ARX_EQUIPMENT_Equip(getIo());
+                "IRON SWORD").getItemData().ARX_EQUIPMENT_Equip(getIo());
         super.computeFullStats();
     }
     /**
