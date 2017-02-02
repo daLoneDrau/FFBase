@@ -24,7 +24,12 @@ public class WebServiceClientTest {
         new FFController();
         new FFWebServiceClient();
         new FFInteractive();
-        new FFScript();
+        try {
+            new FFScript();
+        } catch (RPGException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     @Test
     public void canGetInstance() {
