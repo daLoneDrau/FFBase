@@ -40,5 +40,6 @@ public class FFWorldMapTest {
         GraphNode mn12 = FFWorldMap.getInstance().getRoom(12).getMainNode();
         FFWorldMap.getInstance().getPath(mn1, mn12);
         FFWorldMap.getInstance().getRoom(1).print();
+        FFWorldMap.getInstance().renderViewport();
     }
 }

@@ -8,19 +8,32 @@ import com.dalonedrow.rpg.base.constants.EquipmentGlobals;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
 public final class FFController extends ProjectConstants<FFInteractiveObject> {
+    /* (non-Javadoc)
+     * @see com.dalonedrow.engine.systems.base.ProjectConstants#isGameOver()
+     */
+    @Override
+    public boolean isGameOver() {
+        return false;
+    }
+    private boolean menusOn;
     /** the player IO's id. */
     private int playerId = -1;
-    /**
-     * @param val the value to set
-     */
-    void setPlayer(int val) {
-        this.playerId = val;
-    }
     /**
      *
      */
     public FFController() {
         super.setInstance(this);
+        menusOn = true;
+    }
+    @Override
+    public int getConsoleHeight() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    @Override
+    public int getConsoleWidth() {
+        // TODO Auto-generated method stub
+        return 0;
     }
     @Override
     public int getDamageElementIndex() {
@@ -48,19 +61,27 @@ public final class FFController extends ProjectConstants<FFInteractiveObject> {
         return (FFInteractiveObject) Interactive.getInstance().getIO(
                 playerId);
     }
+    /**
+     * @return the menusOn
+     */
+    public boolean isMenusOn() {
+        return menusOn;
+    }
+    /**
+     * @param menusOn the menusOn to set
+     */
+    public void setMenusOn(boolean menusOn) {
+        this.menusOn = menusOn;
+    }
+    /**
+     * @param val the value to set
+     */
+    void setPlayer(int val) {
+        playerId = val;
+    }
     @Override
     public void update() {
         // TODO Auto-generated method stub
 
-    }
-    @Override
-    public int getConsoleHeight() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    @Override
-    public int getConsoleWidth() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 }
