@@ -30,11 +30,6 @@ public final class GameScreen extends ConsoleView {
         }
         return GameScreen.instance;
     }
-    private String[] commandList = new String[] {
-            "NORTH", "SOUTH", "EAST", "WEST", "OPEN", "SMASH", "ATTACK",
-            "BRIBE", "INTIMIDATE", "SEARCH", "USE", "GIVE", "TAKE", "TALK",
-            "THROW", "EAT", "STEP", "SIT"
-    };
     /** the current index. */
     private int index;
     /** the panel displayed. */

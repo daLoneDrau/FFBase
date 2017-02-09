@@ -10,6 +10,7 @@ import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.JOGLErrorHandler;
 import com.dalonedrow.module.ff.constants.FFEquipmentElements;
 import com.dalonedrow.module.ff.graph.FFMapNode;
+import com.dalonedrow.module.ff.graph.FFRoomNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFItem;
@@ -182,6 +183,10 @@ public final class FFWebServiceClient extends WebServiceClient {
             // name
             // *************************************************
             itemData.setItemName(obj.get("name").getAsString());
+            // *************************************************
+            // title
+            // *************************************************
+            itemData.setTitle(obj.get("title").getAsString());
             // *************************************************
             // max_owned
             // *************************************************
@@ -372,6 +377,33 @@ public final class FFWebServiceClient extends WebServiceClient {
         }
         sb = null;
         return s;
+    }
+    /**
+     * Loads the world map.
+     * @throws RPGException if an error occurs
+     */
+    public void loadRoomData(final FFRoomNode room) throws RPGException {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append(super.getApiProperties().getProperty("endpoint"));
+            sb.append(super.getApiProperties().getProperty("roomApi"));
+            sb.append("/code/");
+            sb.append(room.getId());
+            String response = getResponse(sb.toString());
+            sb.returnToPool();
+            Gson gson = new Gson();
+            JsonArray results = gson.fromJson(response, JsonArray.class);
+            for (int i = results.size() - 1; i >= 0; i--) {
+                JsonObject obj = results.get(i).getAsJsonObject();
+                if (obj.has("exits")) {
+                    
+                }
+            }
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        sb = null;
     }
     /**
      * Loads the world map.

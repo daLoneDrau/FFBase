@@ -11,9 +11,12 @@ import com.dalonedrow.engine.sprite.base.SimplePoint;
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.Diceroller;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
+import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
+import com.dalonedrow.module.ff.systems.FFInteractive;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
 import com.dalonedrow.pooled.StringBuilderPool;
+import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.graph.DijkstraAlgorithm;
 import com.dalonedrow.rpg.graph.EdgeWeightedUndirectedGraph;
@@ -245,6 +248,24 @@ public class FFWorldMap {
                                 sb.append("###");
                             } else {
                                 // this is a floor
+                                FFInteractiveObject io = ((FFInteractive)
+                                        FFInteractive.getInstance())
+                                        .getIoAtPosition(node.getLocation());
+                                if (io != null) {
+                                    if (io.hasIOFlag(IoGlobals.IO_01_PC)) {
+                                        sb.append(" @ ");
+                                    } else if (io.hasIOFlag(IoGlobals.IO_03_NPC)) {
+                                        sb.append(' ');
+                                        sb.append(Character.toUpperCase(
+                                                io.getNPCData().getTitle()[0]));
+                                        sb.append(' ');
+                                    } else if (io.hasIOFlag(IoGlobals.IO_02_ITEM)) {
+                                        sb.append(' ');
+                                        sb.append(Character.toUpperCase(
+                                                io.getItemData().getTitle().charAt(0)));
+                                        sb.append(' ');
+                                    }
+                                } else {
                                 // TODO - check for IOs in node
                                 for (int f = 3; f > 0; f--) {
                                     switch (Diceroller.getInstance()
@@ -270,6 +291,7 @@ public class FFWorldMap {
                                         sb.append('.');
                                         break;
                                     }
+                                }
                                 }
                             }
                             // get next node

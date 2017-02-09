@@ -39,11 +39,12 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
-    FFInteractiveObject getIoAtPosition(final SimplePoint pt) {
+    public FFInteractiveObject getIoAtPosition(final SimplePoint pt) {
         FFInteractiveObject io = null;
         for (int i = objs.length - 1; i >= 0; i--) {
             FFInteractiveObject ioo = objs[i];
             if (ioo != null
+                    && ioo.getPosition()!= null
                     && ioo.getPosition().equals(pt)) {
                 io = ioo;
             }
