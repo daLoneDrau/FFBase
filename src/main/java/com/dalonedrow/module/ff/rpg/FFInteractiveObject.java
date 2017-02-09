@@ -1,5 +1,9 @@
 package com.dalonedrow.module.ff.rpg;
 
+import com.dalonedrow.engine.sprite.base.SimplePoint;
+import com.dalonedrow.engine.sprite.base.SimpleVector2;
+import com.dalonedrow.module.ff.graph.FFWorldMap;
+import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.BaseInteractiveObject;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
@@ -42,6 +46,39 @@ public class FFInteractiveObject extends BaseInteractiveObject<FFItem,
      */
     public final void setDoorData(final FFDoorData data) {
         doorData = data;
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setPosition(final SimpleVector2 val) {
+        if (super.hasIOFlag(IoGlobals.IO_01_PC)) {
+            // this is the player
+            try {
+                FFWorldMap.getInstance().getRoomByCellCoordinates(val).setVisited(true);
+            } catch (RPGException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        super.setPosition(val);
+    }
+    /**
+     * {@inheritDoc}
+     * @throws RPGException 
+     */
+    @Override
+    public void setPosition(final SimplePoint val) throws RPGException {
+        if (super.hasIOFlag(IoGlobals.IO_01_PC)) {
+            // this is the player
+            try {
+                FFWorldMap.getInstance().getRoomByCellCoordinates(val).setVisited(true);
+            } catch (RPGException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        super.setPosition(val);
     }
     /**
      * Sets the room data.

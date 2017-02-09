@@ -9,6 +9,7 @@ import java.util.Set;
 import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.JOGLErrorHandler;
 import com.dalonedrow.module.ff.constants.FFEquipmentElements;
+import com.dalonedrow.module.ff.graph.FFMapNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFItem;
@@ -389,7 +390,7 @@ public final class FFWebServiceClient extends WebServiceClient {
             int index = 0;
             for (int i = results.size() - 1; i >= 0; i--) {
                 JsonObject obj = results.get(i).getAsJsonObject();
-                PhysicalGraphNode node;
+                FFMapNode node;
                 boolean isMain = false;
                 int roomNumber;
                 int x = 0, y = 0;
@@ -401,7 +402,7 @@ public final class FFWebServiceClient extends WebServiceClient {
                 }
                 if (obj.has("terrain")
                         && obj.getAsJsonObject("terrain").has("name")) {
-                    node = new PhysicalGraphNode(
+                    node = new FFMapNode(
                             obj.getAsJsonObject("terrain").get("name").getAsString(),
                             index++, x, y);
                 } else {

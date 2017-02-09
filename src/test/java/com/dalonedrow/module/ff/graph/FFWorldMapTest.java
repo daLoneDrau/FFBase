@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.dalonedrow.module.ff.rpg.FFRoomNode;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.graph.GraphNode;
 
@@ -36,10 +35,10 @@ public class FFWorldMapTest {
     }
     @Test
     public void getPathFromRoom1ToRoom12() throws RPGException {
+        FFWorldMap.getInstance().getRoom(1).setVisited(true);
         GraphNode mn1 = FFWorldMap.getInstance().getRoom(1).getMainNode();
         GraphNode mn12 = FFWorldMap.getInstance().getRoom(12).getMainNode();
         FFWorldMap.getInstance().getPath(mn1, mn12);
-        FFWorldMap.getInstance().getRoom(1).print();
-        FFWorldMap.getInstance().renderViewport();
+        System.out.println(FFWorldMap.getInstance().renderViewport());
     }
 }

@@ -8,9 +8,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.dalonedrow.engine.sprite.base.SimplePoint;
+import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.Diceroller;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
-import com.dalonedrow.module.ff.rpg.FFRoomNode;
+import com.dalonedrow.pooled.PooledException;
+import com.dalonedrow.pooled.PooledStringBuilder;
+import com.dalonedrow.pooled.StringBuilderPool;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.graph.DijkstraAlgorithm;
 import com.dalonedrow.rpg.graph.EdgeWeightedUndirectedGraph;
@@ -32,6 +35,7 @@ public class FFWorldMap {
         }
         return FFWorldMap.instance;
     }
+    /** the comparator for organizing the viewport. */
     private ViewportComparator comparator;
     /** the map's graph. */
     private EdgeWeightedUndirectedGraph graph;
@@ -56,7 +60,7 @@ public class FFWorldMap {
      * @param isMain flag indicating whether the node is the room's main
      * @throws RPGException if an error occurs
      */
-    public void addNode(final GraphNode node, final int roomNumber,
+    public void addNode(final FFMapNode node, final int roomNumber,
             final boolean isMain) throws RPGException {
         graph.addVertex(node);
         if (!hasRoom(roomNumber)) {
@@ -64,8 +68,7 @@ public class FFWorldMap {
                     new FFRoomNode(roomNumber), rooms);
         }
         getRoom(roomNumber).addNode(node, isMain);
-        System.out.println("added node " + node.getIndex() + "::"
-                + ((PhysicalGraphNode) node).getLocation());
+        node.setRoomNumber(roomNumber);
     }
     public void getPath(final GraphNode source, GraphNode to)
             throws RPGException {
@@ -86,7 +89,7 @@ public class FFWorldMap {
         }
     }
     /**
-     * Gets a room by its number
+     * Gets a room by its number.
      * @param roomNumber the room number
      * @return {@link FFRoomNode}
      */
@@ -98,6 +101,40 @@ public class FFWorldMap {
                     room = rooms[i];
                     break;
                 }
+            }
+        }
+        return room;
+    }
+    /**
+     * Gets the room associated with a specific coordinate.
+     * @param coordinate the coordinates
+     * @return {@link FFRoomNode}
+     */
+    public FFRoomNode getRoomByCellCoordinates(final SimplePoint coordinate) {
+        FFRoomNode room = null;
+        GraphNode[] nodes = graph.getVertexes();
+        for (int i = nodes.length - 1; i >= 0; i--) {
+            FFMapNode node = (FFMapNode) nodes[i];
+            if (node.equals(coordinate)) {
+                room = getRoom(node.getRoomNumber());
+                break;
+            }
+        }
+        return room;
+    }
+    /**
+     * Gets the room associated with a specific coordinate.
+     * @param coordinate the coordinates
+     * @return {@link FFRoomNode}
+     */
+    public FFRoomNode getRoomByCellCoordinates(final SimpleVector2 coordinate) {
+        FFRoomNode room = null;
+        GraphNode[] nodes = graph.getVertexes();
+        for (int i = nodes.length - 1; i >= 0; i--) {
+            FFMapNode node = (FFMapNode) nodes[i];
+            if (node.equals(coordinate)) {
+                room = getRoom(node.getRoomNumber());
+                break;
             }
         }
         return room;
@@ -136,7 +173,6 @@ public class FFWorldMap {
                 if ("CAVE_WALL".equalsIgnoreCase(new String(node.getName()))) {
                     continue;
                 }
-                System.out.println("check NODE " + outer);
                 for (int inner = graph.getNumberOfVertices(); inner >= 0;
                         inner--) {
                     if (graph.getVertex(inner) == null) {
@@ -154,11 +190,6 @@ public class FFWorldMap {
                     if (other.getLocation().getX() == node.getLocation().getX()
                             && Math.abs((int) other.getLocation().getY()
                                     - (int) node.getLocation().getY()) == 1) {
-                        System.out
-                                .println("\tadded edge from " + node.getIndex()
-                                        + "::" + node.getLocation() + " to "
-                                        + other.getIndex() + "::"
-                                        + other.getLocation());
                         graph.addEdge(node.getIndex(), other.getIndex());
                     } else if (other.getLocation().getY() == node.getLocation()
                             .getY()
@@ -166,17 +197,14 @@ public class FFWorldMap {
                                     - (int) node.getLocation().getX()) == 1) {
                         // add bi-directional edge
                         graph.addEdge(node.getIndex(), other.getIndex());
-                        System.out
-                                .println("\tadded edge from " + node.getIndex()
-                                        + "::" + node.getLocation() + " to "
-                                        + other.getIndex() + "::"
-                                        + other.getLocation());
                     }
                 }
             }
         }
     }
-    public void renderViewport() {
+    public String renderViewport() {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
         SimplePoint pt = getRoom(1).getMainNode().getLocation();
         int maxX = (int) (pt.getX() + 16), minX = (int) (pt.getX() - 16);
         int maxY = (int) (pt.getY() + 5), minY = (int) (pt.getY() - 5);
@@ -184,76 +212,90 @@ public class FFWorldMap {
         maxY = Math.min(maxY, 1340);
         Rectangle r = new Rectangle(minX, minY, 33, 11);
         // find all nodes within the viewport
-        List<PhysicalGraphNode> view = new ArrayList<PhysicalGraphNode>();
+        List<FFMapNode> view = new ArrayList<FFMapNode>();
         GraphNode[] nodes = graph.getVertexes();
         for (int i = nodes.length - 1; i >= 0; i--) {
-            PhysicalGraphNode node = (PhysicalGraphNode) nodes[i];
+            FFMapNode node = (FFMapNode) nodes[i];
             if (r.contains(node.getLocation().getX(),
                     node.getLocation().getY())) {
-                view.add(node);
+                FFRoomNode room = getRoom(node.getRoomNumber());
+                if (room.isVisited()) {
+                    view.add(node);
+                }
             }
         }
         Collections.sort(view, comparator);
         int i = 0;
         PhysicalGraphNode node = view.get(i);
-        for (int row = minY; row <= maxY; row++) {
-            for (int col = minX; col <= maxX; col++) {
-                if ((int) node.getLocation().getY() > row) {
-                    // node is not on the same row.
-                    // print blank space
-                    System.out.print("   ");
-                } else if ((int) node.getLocation().getY() == row) {
-                    // node is on the same row.
-                    // is node being rendered?
-                    if ((int) node.getLocation().getX() == col) {
-                        // render node
-                        if ("CAVE_WALL"
-                                .equalsIgnoreCase(new String(node.getName()))) {
-                            System.out.print("###");
-                        } else {
-                            // this is a floor
-                            // TODO - check for IOs in node
-                            for (int f = 3; f > 0; f--) {
-                                switch (Diceroller.getInstance().rolldX(8)) {
-                                case 1:
-                                case 2:
-                                case 3:
-                                    System.out.print(' ');
-                                    break;
-                                case 4:
-                                    System.out.print(',');
-                                    break;
-                                case 5:
-                                    System.out.print('`');
-                                    break;
-                                case 6:
-                                    System.out.print(';');
-                                    break;
-                                case 7:
-                                    System.out.print('\'');
-                                    break;
-                                case 8:
-                                    System.out.print('.');
-                                    break;
+        try {
+            for (int row = minY; row <= maxY; row++) {
+                for (int col = minX; col <= maxX; col++) {
+                    if ((int) node.getLocation().getY() > row) {
+                        // node is not on the same row.
+                        // print blank space
+                        sb.append("   ");
+                    } else if ((int) node.getLocation().getY() == row) {
+                        // node is on the same row.
+                        // is node being rendered?
+                        if ((int) node.getLocation().getX() == col) {
+                            // render node
+                            if ("CAVE_WALL"
+                                    .equalsIgnoreCase(
+                                            new String(node.getName()))) {
+                                sb.append("###");
+                            } else {
+                                // this is a floor
+                                // TODO - check for IOs in node
+                                for (int f = 3; f > 0; f--) {
+                                    switch (Diceroller.getInstance()
+                                            .rolldX(8)) {
+                                    case 1:
+                                    case 2:
+                                    case 3:
+                                        sb.append(' ');
+                                        break;
+                                    case 4:
+                                        sb.append(',');
+                                        break;
+                                    case 5:
+                                        sb.append('`');
+                                        break;
+                                    case 6:
+                                        sb.append(';');
+                                        break;
+                                    case 7:
+                                        sb.append('\'');
+                                        break;
+                                    case 8:
+                                        sb.append('.');
+                                        break;
+                                    }
                                 }
                             }
+                            // get next node
+                            if (++i < view.size()) {
+                                node = view.get(i);
+                            }
+                        } else {
+                            // node is not the same col.
+                            // print blank space
+                            sb.append("   ");
                         }
-                        // get next node
-                        if (++i < view.size()) {
-                            node = view.get(i);
-                        }
-                    } else {
-                        // node is not the same col.
-                        // print blank space
-                        System.out.print("   ");
+                    }
+                    // if row ends, println
+                    if (col == maxX) {
+                        sb.append('\n');
                     }
                 }
-                // if row ends, println
-                if (col == maxX) {
-                    System.out.println();
-                }
             }
+        } catch (PooledException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+        String s = sb.toString();
+        sb.returnToPool();
+        sb = null;
+        return s;
     }
 }
 

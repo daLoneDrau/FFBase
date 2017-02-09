@@ -1,7 +1,8 @@
 package com.dalonedrow.module.ff.systems;
 
 import com.dalonedrow.module.ff.graph.FFWorldMap;
-import com.dalonedrow.module.ff.ui.GUI;
+import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
+import com.dalonedrow.module.ff.ui.FFGUI;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
 public class Main {
@@ -14,14 +15,18 @@ public class Main {
             new FFSpeech();
             new FFSpellController();
             new FFText();
-            new GUI();
+            new FFGUI();
             FFWorldMap.getInstance().load();
             GameCycle.getInstance();
             // create new hero
             ((FFInteractive) FFInteractive.getInstance()).newHero();
             // put hero in room 1
-            ((FFController) FFController.getInstance()).getPlayerIO()
-            .setPosition(FFWorldMap.getInstance().getRoom(1).getMainNode().getLocation());
+            FFInteractiveObject io = ((FFController)
+                    FFController.getInstance()).getPlayerIO();
+            io.setPosition(
+                    FFWorldMap.getInstance().getRoom(
+                            1).getMainNode().getLocation());
+            io = null;
             // set welcome screen
             FFInterface.getInstance().addFlag(FFInterface.WELCOME);
             while (!FFController.getInstance().isGameOver()) {

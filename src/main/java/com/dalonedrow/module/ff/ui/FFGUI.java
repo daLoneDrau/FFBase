@@ -4,11 +4,11 @@ import com.dalonedrow.module.ff.systems.FFInterface;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.base.systems.ConsoleInterface;
 
-public class GUI extends ConsoleInterface {
+public class FFGUI extends ConsoleInterface {
     /**
      *
      */
-    public GUI() {
+    public FFGUI() {
         super.setInstance(this);
     }
     @Override
@@ -16,7 +16,7 @@ public class GUI extends ConsoleInterface {
         if (FFInterface.getInstance().hasFlag(FFInterface.WELCOME)) {
             WelcomeScreen.getInstance().render();
         } else {
-            System.exit(1);
+            GameScreen.getInstance().render();
         }
     }
 }

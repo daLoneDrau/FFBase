@@ -1,11 +1,11 @@
 package com.dalonedrow.module.ff.systems;
 
 import com.dalonedrow.engine.systems.base.Time;
+import com.dalonedrow.module.ff.ui.FFGUI;
 import com.dalonedrow.rpg.base.consoleui.InputEvent;
 import com.dalonedrow.rpg.base.consoleui.InputProcessor;
 import com.dalonedrow.rpg.base.consoleui.OutputEvent;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
-import com.dalonedrow.rpg.base.systems.ConsoleInterface;
 import com.dalonedrow.rpg.base.systems.Script;
 
 public class GameCycle {
@@ -19,14 +19,14 @@ public class GameCycle {
         }
         return instance;
     }
+    private boolean firstFrame = true;
     /**
-     * 
+     *
      */
     private GameCycle() {
         super();
         // TODO Auto-generated constructor stub
     }
-    private boolean firstFrame = true;
     public void execute() throws RPGException {
         // get frame start
         Time.getInstance().getFrameStart();
@@ -86,8 +86,7 @@ public class GameCycle {
 
         // start rendering
         // render screens to the output buffer
-        System.out.println("**prepare for rendering**");
-        ConsoleInterface.getInstance().prepareForRendering();
+        FFGUI.getInstance().prepareForRendering();
 
         // check script timers
         Script.getInstance().timerCheck();

@@ -6,6 +6,7 @@ import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
 import com.dalonedrow.pooled.StringBuilderPool;
 import com.dalonedrow.rpg.base.constants.Dice;
+import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.IOEquipItem;
 import com.dalonedrow.rpg.base.flyweights.IoPcData;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
@@ -114,6 +115,46 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
     protected String getLifeAttribute() {
         return "ST";
     }
+    @Override
+    public float getMaxLife() {
+        return super.getBaseAttributeScore("MST");
+    }
+    /**
+     * Gets the status strings used in the display.
+     * @return {@link String}[]
+     * @throws RPGException if an error occurs
+     */
+    public String[] getStatusString() throws RPGException {
+        super.computeFullStats();
+        String sk = "", st = "", lk = "";
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append((int) getFullAttributeScore("SK"));
+            sb.append('/');
+            sb.append((int) getFullAttributeScore("MSK"));
+            sk = sb.toString();
+            sb.setLength(0);
+            sb.append((int) getFullAttributeScore("ST"));
+            sb.append('/');
+            sb.append((int) getFullAttributeScore("MST"));
+            st = sb.toString();
+            sb.setLength(0);
+            sb.append((int) getFullAttributeScore("LK"));
+            sb.append('/');
+            sb.append((int) getFullAttributeScore("MLK"));
+            lk = sb.toString();
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        sb.returnToPool();
+        sb = null;
+        String[] s = new String[] { sk, st, lk };
+        sk = null;
+        st = null;
+        lk = null;
+        return s;
+    }
     /**
      * {@inheritDoc}
      */
@@ -121,10 +162,6 @@ public final class FFCharacter extends IoPcData<FFInteractiveObject> {
     public boolean isInCombat() {
         // TODO Auto-generated method stub
         return false;
-    }
-    @Override
-    public float getMaxLife() {
-        return super.getBaseAttributeScore("MST");
     }
     public void newHero() throws RPGException {
         // roll stats

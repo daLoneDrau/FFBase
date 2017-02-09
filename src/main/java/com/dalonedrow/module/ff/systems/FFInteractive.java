@@ -3,6 +3,7 @@ package com.dalonedrow.module.ff.systems;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import com.dalonedrow.engine.sprite.base.SimplePoint;
 import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
 import com.dalonedrow.module.ff.rpg.FFCharacter;
@@ -38,7 +39,17 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
-
+    FFInteractiveObject getIoAtPosition(final SimplePoint pt) {
+        FFInteractiveObject io = null;
+        for (int i = objs.length - 1; i >= 0; i--) {
+            FFInteractiveObject ioo = objs[i];
+            if (ioo != null
+                    && ioo.getPosition().equals(pt)) {
+                io = ioo;
+            }
+        }
+        return io;
+    }
     @Override
     public FFInteractiveObject addItem(String item, long flags)
             throws RPGException {

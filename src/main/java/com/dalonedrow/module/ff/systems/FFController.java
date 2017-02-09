@@ -27,13 +27,11 @@ public final class FFController extends ProjectConstants<FFInteractiveObject> {
     }
     @Override
     public int getConsoleHeight() {
-        // TODO Auto-generated method stub
-        return 0;
+        return 16;
     }
     @Override
     public int getConsoleWidth() {
-        // TODO Auto-generated method stub
-        return 0;
+        return 100;
     }
     @Override
     public int getDamageElementIndex() {

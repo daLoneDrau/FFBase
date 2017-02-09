@@ -1,9 +1,14 @@
-package com.dalonedrow.module.ff.rpg;
+package com.dalonedrow.module.ff.graph;
 
 import com.dalonedrow.rpg.graph.GraphNode;
 import com.dalonedrow.rpg.graph.PhysicalGraphNode;
 import com.dalonedrow.utils.ArrayUtilities;
 
+/**
+ * 
+ * @author 588648
+ *
+ */
 public class FFRoomNode {
     /** the room's id. */
     private final int id;
@@ -12,10 +17,36 @@ public class FFRoomNode {
     /** the list of {@link GraphNode}s the room contains. */
     private PhysicalGraphNode[] nodes;
     /**
+     * the flag indicating whether the initial text has been displayed.
+     */
+    private boolean initialTextDisplayed;
+    /**
+     * the flag indicating whether the player has visited the room before or
+     * not.
+     */
+    private boolean visited;
+    /**
+     * Gets the flag indicating whether the player has visited the room before
+     * or not.
+     * @return <tt>true</tt> if the player has visited the room; <tt>false</tt>
+     * otherwise
+     */
+    public boolean isVisited() {
+        return visited;
+    }
+    /**
+     * Sets the flag indicating whether the player has visited the room before
+     * or not.
+     * @param flag the flag
+     */
+    public void setVisited(final boolean flag) {
+        this.visited = flag;
+    }
+    /**
      * Creates a new instance of {@link FFRoomNode}.
      * @param roomId the room's id
      */
-    public FFRoomNode(int roomId) {
+    public FFRoomNode(final int roomId) {
         id = roomId;
         mainNode = -1;
         nodes = new PhysicalGraphNode[0];
@@ -25,7 +56,7 @@ public class FFRoomNode {
      * @param node the {@link GraphNode}
      * @param isMain the flag indicating whether the node is the main node
      */
-    public void addNode(GraphNode node, boolean isMain) {
+    public void addNode(final GraphNode node, final boolean isMain) {
         if (!hasNode(node.getIndex())) {
             nodes = (PhysicalGraphNode[]) ArrayUtilities.getInstance()
                     .extendArray(node, nodes);
@@ -39,7 +70,7 @@ public class FFRoomNode {
      * @param node the {@link GraphNode}
      * @return <tt>true</tt> if the room has the node; <tt>false</tt> otherwise
      */
-    public boolean contains(GraphNode node) {
+    public boolean contains(final GraphNode node) {
         boolean contains = false;
         for (int i = nodes.length - 1; i >= 0; i--) {
             if (nodes[i].getIndex() == node.getIndex()) {
@@ -57,7 +88,7 @@ public class FFRoomNode {
         return id;
     }
     /**
-     * Gets the main node
+     * Gets the main node.
      * @return {@link PhysicalGraphNode}
      */
     public PhysicalGraphNode getMainNode() {
@@ -88,10 +119,10 @@ public class FFRoomNode {
     }
     /**
      * Determines if a room contains a specific {@link GraphNode}.
-     * @param node the {@link GraphNode}'s index
+     * @param index the {@link GraphNode}'s index
      * @return <tt>true</tt> if the room has the node; <tt>false</tt> otherwise
      */
-    private boolean hasNode(int index) {
+    private boolean hasNode(final int index) {
         boolean has = false;
         for (int i = nodes.length - 1; i >= 0; i--) {
             if (nodes[i].getIndex() == index) {
@@ -102,8 +133,10 @@ public class FFRoomNode {
         return has;
     }
     /**
+     * 
      * Determines if a room contains a specific {@link GraphNode}.
-     * @param node the {@link GraphNode}'s index
+     * @param x the node's x-coordinates
+     * @param y the node's y-coordinates
      * @return <tt>true</tt> if the room has the node; <tt>false</tt> otherwise
      */
     public boolean hasNode(final int x, final int y) {
@@ -125,30 +158,9 @@ public class FFRoomNode {
     }
     /**
      * Sets the room's main node.
-     * @param node the main node to set
+     * @param index the main node's index to set
      */
-    public void setMainNode(int val) {
-        mainNode = val;
-    }
-    public void print() {
-        int width = this.getWidth();
-        int height = this.getHeight();
-        System.out.println(width+","+height);
-    }
-    private int getHeight() {
-        int maxY = 0, minY = Integer.MAX_VALUE;
-        for (int i = nodes.length - 1; i >= 0; i--) {
-            maxY = Math.max(maxY, (int) nodes[i].getLocation().getY());
-            minY = Math.min(minY, (int) nodes[i].getLocation().getY());
-        }
-        return maxY - minY + 1;
-    }
-    private int getWidth() {
-        int maxX = 0, minX = Integer.MAX_VALUE;
-        for (int i = nodes.length - 1; i >= 0; i--) {
-            maxX = Math.max(maxX, (int) nodes[i].getLocation().getX());
-            minX = Math.min(minX, (int) nodes[i].getLocation().getX());
-        }
-        return maxX - minX + 1;
+    public void setMainNode(final int index) {
+        mainNode = index;
     }
 }
