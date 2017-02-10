@@ -12,6 +12,7 @@ import com.dalonedrow.module.ff.constants.FFEquipmentElements;
 import com.dalonedrow.module.ff.graph.FFMapNode;
 import com.dalonedrow.module.ff.graph.FFRoomNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
+import com.dalonedrow.module.ff.rpg.FFCommand;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFItem;
 import com.dalonedrow.module.ff.rpg.FFNpc;
@@ -26,7 +27,6 @@ import com.dalonedrow.rpg.base.flyweights.EquipmentItemModifier;
 import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.base.systems.Script;
-import com.dalonedrow.rpg.graph.PhysicalGraphNode;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -245,6 +245,59 @@ public final class FFWebServiceClient extends WebServiceClient {
         return io;
     }
     /**
+     * Loads the world map.
+     * @throws RPGException if an error occurs
+     */
+    public void loadMap() throws RPGException {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append(super.getApiProperties().getProperty("endpoint"));
+            sb.append(super.getApiProperties().getProperty("mapApi"));
+            String response = getResponse(sb.toString());
+            sb.returnToPool();
+            Gson gson = new Gson();
+            JsonArray results = gson.fromJson(response, JsonArray.class);
+            int index = 0;
+            for (int i = results.size() - 1; i >= 0; i--) {
+                JsonObject obj = results.get(i).getAsJsonObject();
+                FFMapNode node;
+                boolean isMain = false;
+                int roomNumber;
+                int x = 0, y = 0;
+                if (obj.has("x")) {
+                    x = obj.get("x").getAsInt();
+                }
+                if (obj.has("y")) {
+                    y = obj.get("y").getAsInt();
+                }
+                if (obj.has("terrain")
+                        && obj.getAsJsonObject("terrain").has("name")) {
+                    node = new FFMapNode(
+                            obj.getAsJsonObject("terrain").get("name")
+                                    .getAsString(),
+                            index++, x, y);
+                } else {
+                    throw new RPGException(ErrorMessage.BAD_PARAMETERS,
+                            "Node " + x + "," + y + " has no terrain data");
+                }
+                if (obj.has("is_main_node")) {
+                    isMain = obj.get("is_main_node").getAsBoolean();
+                }
+                if (obj.has("room_number")) {
+                    roomNumber = obj.get("room_number").getAsInt();
+                } else {
+                    throw new RPGException(ErrorMessage.BAD_PARAMETERS,
+                            "Node " + x + "," + y + " has no room number");
+                }
+                FFWorldMap.getInstance().addNode(node, roomNumber, isMain);
+            }
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        sb = null;
+    }
+    /**
      * Loads an item by its name.
      * @param npcName the item's name
      * @return {@link FFInteractiveObject}
@@ -344,6 +397,47 @@ public final class FFWebServiceClient extends WebServiceClient {
         return io;
     }
     /**
+     * Loads data for a specific room.
+     * @param room the room
+     * @throws RPGException if an error occurs
+     */
+    public void loadRoomData(final FFRoomNode room) throws RPGException {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append(super.getApiProperties().getProperty("endpoint"));
+            sb.append(super.getApiProperties().getProperty("roomApi"));
+            sb.append("/code/");
+            sb.append(room.getId());
+            String response = getResponse(sb.toString());
+            sb.returnToPool();
+            Gson gson = new Gson();
+            JsonArray results = gson.fromJson(response, JsonArray.class);
+            for (int i = results.size() - 1; i >= 0; i--) {
+                JsonObject obj = results.get(i).getAsJsonObject();
+                if (obj.has("commands")) {
+                    JsonArray commands = obj.getAsJsonArray("commands");
+                    for (int j = commands.size() - 1; j >= 0; j--) {
+                        JsonObject command = commands.get(j).getAsJsonObject();
+                        if (command.has("name")) {
+                            room.addCommand(FFCommand.valueOf(
+                                    command.get("name").getAsString()));
+                        }
+                        command = null;
+                    }
+                    commands = null;
+                }
+                obj = null;
+            }
+            response = null;
+            gson = null;
+            results = null;
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        sb = null;
+    }
+    /**
      * Loads the game text with a call to the web service.
      * @param section the text section
      * @return {@link String}
@@ -377,84 +471,5 @@ public final class FFWebServiceClient extends WebServiceClient {
         }
         sb = null;
         return s;
-    }
-    /**
-     * Loads the world map.
-     * @throws RPGException if an error occurs
-     */
-    public void loadRoomData(final FFRoomNode room) throws RPGException {
-        PooledStringBuilder sb =
-                StringBuilderPool.getInstance().getStringBuilder();
-        try {
-            sb.append(super.getApiProperties().getProperty("endpoint"));
-            sb.append(super.getApiProperties().getProperty("roomApi"));
-            sb.append("/code/");
-            sb.append(room.getId());
-            String response = getResponse(sb.toString());
-            sb.returnToPool();
-            Gson gson = new Gson();
-            JsonArray results = gson.fromJson(response, JsonArray.class);
-            for (int i = results.size() - 1; i >= 0; i--) {
-                JsonObject obj = results.get(i).getAsJsonObject();
-                if (obj.has("exits")) {
-                    
-                }
-            }
-        } catch (PooledException e) {
-            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-        }
-        sb = null;
-    }
-    /**
-     * Loads the world map.
-     * @throws RPGException if an error occurs
-     */
-    public void loadMap() throws RPGException {
-        PooledStringBuilder sb =
-                StringBuilderPool.getInstance().getStringBuilder();
-        try {
-            sb.append(super.getApiProperties().getProperty("endpoint"));
-            sb.append(super.getApiProperties().getProperty("mapApi"));
-            String response = getResponse(sb.toString());
-            sb.returnToPool();
-            Gson gson = new Gson();
-            JsonArray results = gson.fromJson(response, JsonArray.class);
-            int index = 0;
-            for (int i = results.size() - 1; i >= 0; i--) {
-                JsonObject obj = results.get(i).getAsJsonObject();
-                FFMapNode node;
-                boolean isMain = false;
-                int roomNumber;
-                int x = 0, y = 0;
-                if (obj.has("x")) {
-                    x = obj.get("x").getAsInt();
-                }
-                if (obj.has("y")) {
-                    y = obj.get("y").getAsInt();
-                }
-                if (obj.has("terrain")
-                        && obj.getAsJsonObject("terrain").has("name")) {
-                    node = new FFMapNode(
-                            obj.getAsJsonObject("terrain").get("name").getAsString(),
-                            index++, x, y);
-                } else {
-                    throw new RPGException(ErrorMessage.BAD_PARAMETERS,
-                            "Node " + x + "," + y + " has no terrain data");
-                }
-                if (obj.has("is_main_node")) {
-                    isMain = obj.get("is_main_node").getAsBoolean();
-                }
-                if (obj.has("room_number")) {
-                    roomNumber = obj.get("room_number").getAsInt();
-                } else {
-                    throw new RPGException(ErrorMessage.BAD_PARAMETERS,
-                            "Node " + x + "," + y + " has no room number");
-                }
-                FFWorldMap.getInstance().addNode(node, roomNumber, isMain);
-            }
-        } catch (PooledException e) {
-            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-        }
-        sb = null;       
     }
 }

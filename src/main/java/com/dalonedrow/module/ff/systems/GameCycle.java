@@ -57,7 +57,6 @@ public class GameCycle {
             // not first frame
             // set flags for keyboard and mouse input
             // wait for input
-            System.out.println("**accept input**");
             InputProcessor.getInstance().acceptInput();
         } else {
             // else first frame
@@ -131,7 +130,6 @@ public class GameCycle {
 
         // end rendering
         // write and flush output
-        System.out.println("**render**");
         OutputEvent.getInstance().render();
 
         // get snapshot if F10 pressed

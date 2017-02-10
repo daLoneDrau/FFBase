@@ -1,9 +1,20 @@
 package com.dalonedrow.module.ff.ui;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
+import com.dalonedrow.module.ff.graph.FFRoomNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
+import com.dalonedrow.module.ff.rpg.FFCommand;
 import com.dalonedrow.module.ff.systems.FFController;
+import com.dalonedrow.pooled.PooledException;
+import com.dalonedrow.pooled.PooledStringBuilder;
+import com.dalonedrow.pooled.StringBuilderPool;
 import com.dalonedrow.rpg.base.consoleui.ConsoleView;
 import com.dalonedrow.rpg.base.consoleui.InputProcessor;
 import com.dalonedrow.rpg.base.consoleui.OutputEvent;
@@ -103,9 +114,40 @@ public final class GameScreen extends ConsoleView {
      * @throws RPGException if an error occurs
      */
     private void processCommandsView() throws RPGException {
+        SimpleVector2 pos = ((FFController) ProjectConstants.getInstance()).getPlayerIO().getPosition();
+        FFRoomNode room = FFWorldMap.getInstance().getRoomByCellCoordinates(pos);
+        List<FFCommand> commands = new ArrayList<FFCommand>(Arrays.asList(room.getCommands()));
+        commands.add(FFCommand.SEARCH);
+        commands.add(FFCommand.USE);
+        commands.add(FFCommand.INVENTORY);
+        Collections.sort(commands);
+        List<String> list = new ArrayList<String>();
+        int lenw = 0;
+        for (int i = 0, len = commands.size(); i < len; i++) {
+            list.add(commands.get(i).name());
+            lenw += commands.get(i).name().length();
+        }
+        lenw += commands.size() * 3;
+        if (lenw < this.COMMANDS_TABLE_WIDTH - 4) {
+            PooledStringBuilder sb = StringBuilderPool.getInstance().getStringBuilder();
+            for (int i = this.COMMANDS_TABLE_WIDTH - 4 - lenw; i > 0; i--) {
+                try {
+                    sb.append(' ');
+                } catch (PooledException e) {
+                    throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+                }
+            }
+            list.add(sb.toString());
+            sb.returnToPool();
+            sb = null;
+        }
         cmdsPanel.setContent(
                 TextProcessor.getInstance().getSelectionsAsColumns(9,
-                        commandList, "   "));
+                        list.toArray(new String[list.size()]), "   "));
+        pos = null;
+        room = null;
+        commands = null;
+        list = null;
     }
     /**
      * Processes the content for the status view.

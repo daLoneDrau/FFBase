@@ -166,6 +166,10 @@ public class FFWorldMap {
         if (!loaded) {
             loaded = true;
             FFWebServiceClient.getInstance().loadMap();
+            // update rooms with commands
+            for (int i = rooms.length - 1; i >= 0; i--) {
+                FFWebServiceClient.getInstance().loadRoomData(rooms[i]);
+            }
             // connect all vertices
             for (int outer = graph.getNumberOfVertices(); outer >= 0; outer--) {
                 if (graph.getVertex(outer) == null) {
@@ -269,25 +273,27 @@ public class FFWorldMap {
                                 // TODO - check for IOs in node
                                 for (int f = 3; f > 0; f--) {
                                     switch (Diceroller.getInstance()
-                                            .rolldX(8)) {
+                                            .rolldX(10)) {
                                     case 1:
                                     case 2:
                                     case 3:
+                                    case 4:
+                                    case 5:
                                         sb.append(' ');
                                         break;
-                                    case 4:
+                                    case 6:
                                         sb.append(',');
                                         break;
-                                    case 5:
+                                    case 7:
                                         sb.append('`');
                                         break;
-                                    case 6:
+                                    case 8:
                                         sb.append(';');
                                         break;
-                                    case 7:
+                                    case 9:
                                         sb.append('\'');
                                         break;
-                                    case 8:
+                                    case 10:
                                         sb.append('.');
                                         break;
                                     }

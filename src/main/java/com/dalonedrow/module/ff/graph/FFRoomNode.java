@@ -1,5 +1,9 @@
 package com.dalonedrow.module.ff.graph;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.dalonedrow.module.ff.rpg.FFCommand;
 import com.dalonedrow.rpg.graph.GraphNode;
 import com.dalonedrow.rpg.graph.PhysicalGraphNode;
 import com.dalonedrow.utils.ArrayUtilities;
@@ -50,6 +54,7 @@ public class FFRoomNode {
         id = roomId;
         mainNode = -1;
         nodes = new PhysicalGraphNode[0];
+        commands = new ArrayList<FFCommand>();
     }
     /**
      * Adds a {@link GraphNode} to the room.
@@ -162,5 +167,15 @@ public class FFRoomNode {
      */
     public void setMainNode(final int index) {
         mainNode = index;
+    }
+    private List<FFCommand> commands;
+    public void addCommand(final FFCommand ffCommand) {
+        if (ffCommand != null
+                && !commands.contains(ffCommand)) {
+            commands.add(ffCommand);
+        }
+    }
+    public FFCommand[] getCommands() {
+        return commands.toArray(new FFCommand[commands.size()]);
     }
 }
