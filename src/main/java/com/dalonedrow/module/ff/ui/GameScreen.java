@@ -41,27 +41,36 @@ public final class GameScreen extends ConsoleView {
         }
         return GameScreen.instance;
     }
+    /** the panel displaying the action prompt. */
+    private final Panel actionPanel;
+    /** the panel displaying the commands. */
+    private final Panel cmdsPanel;
+    /** the width of the stats table, with borders. */
+    private final int COMMANDS_TABLE_WIDTH;
     /** the current index. */
     private int index;
+    /** the panel displaying the room view. */
+    private final Panel mapPanel;
+    /** the panel displaying the room description. */
+    private final Panel mapDescPanel;
     /** the panel displayed. */
     private Panel panel;
     /** the width of the stats table, with borders. */
     private final int STATS_TABLE_WIDTH;
-    /** the width of the stats table, with borders. */
-    private final int COMMANDS_TABLE_WIDTH;
-    /** the panel displaying the commands. */
-    private final Panel cmdsPanel;
     /** the panel displaying the stats. */
     private final Panel statsPanel;
     /** the intro text. */
     private String[] text;
-    /** the panel displaying the room view. */
-    private final Panel mapPanel;
     /** Hidden constructor. */
     private GameScreen() {
-        STATS_TABLE_WIDTH = "Stamina: 99/99".length() + 4;
-        COMMANDS_TABLE_WIDTH = 100 - STATS_TABLE_WIDTH;
-        mapPanel = new FFPanel(100, false, 11, "", "");
+        final int padding = 4;
+        final int screenWidth =
+                ProjectConstants.getInstance().getConsoleWidth();
+        STATS_TABLE_WIDTH = "Stamina: 99/99".length() + padding;
+        COMMANDS_TABLE_WIDTH = screenWidth - STATS_TABLE_WIDTH;
+        mapPanel = new FFPanel(screenWidth, false, 11, "", "");
+        mapDescPanel = new FFPanel(screenWidth, false, 4, "", "");
+        actionPanel = new FFPanel(screenWidth, false, 1, "", "");
         statsPanel = new FFPanel(STATS_TABLE_WIDTH, true, 5, "", "STATUS");
         cmdsPanel = new FFPanel(COMMANDS_TABLE_WIDTH, true, 5, "", "COMMANDS");
     }
@@ -106,17 +115,13 @@ public final class GameScreen extends ConsoleView {
      * Processes the content for the status view.
      * @throws RPGException if an error occurs
      */
-    private void processMapView() throws RPGException {
-        mapPanel.setContent(FFWorldMap.getInstance().renderViewport());
-    }
-    /**
-     * Processes the content for the status view.
-     * @throws RPGException if an error occurs
-     */
     private void processCommandsView() throws RPGException {
-        SimpleVector2 pos = ((FFController) ProjectConstants.getInstance()).getPlayerIO().getPosition();
-        FFRoomNode room = FFWorldMap.getInstance().getRoomByCellCoordinates(pos);
-        List<FFCommand> commands = new ArrayList<FFCommand>(Arrays.asList(room.getCommands()));
+        SimpleVector2 pos = ((FFController) ProjectConstants.getInstance())
+                .getPlayerIO().getPosition();
+        FFRoomNode room =
+                FFWorldMap.getInstance().getRoomByCellCoordinates(pos);
+        List<FFCommand> commands =
+                new ArrayList<FFCommand>(Arrays.asList(room.getCommands()));
         commands.add(FFCommand.SEARCH);
         commands.add(FFCommand.USE);
         commands.add(FFCommand.INVENTORY);
@@ -128,9 +133,10 @@ public final class GameScreen extends ConsoleView {
             lenw += commands.get(i).name().length();
         }
         lenw += commands.size() * 3;
-        if (lenw < this.COMMANDS_TABLE_WIDTH - 4) {
-            PooledStringBuilder sb = StringBuilderPool.getInstance().getStringBuilder();
-            for (int i = this.COMMANDS_TABLE_WIDTH - 4 - lenw; i > 0; i--) {
+        if (lenw < COMMANDS_TABLE_WIDTH - 4) {
+            PooledStringBuilder sb =
+                    StringBuilderPool.getInstance().getStringBuilder();
+            for (int i = COMMANDS_TABLE_WIDTH - 4 - lenw; i > 0; i--) {
                 try {
                     sb.append(' ');
                 } catch (PooledException e) {
@@ -148,6 +154,21 @@ public final class GameScreen extends ConsoleView {
         room = null;
         commands = null;
         list = null;
+    }
+    /**
+     * Processes the content for the status view.
+     * @throws RPGException if an error occurs
+     */
+    private void processMapView() throws RPGException {
+        mapPanel.setContent(FFWorldMap.getInstance().renderViewport());
+        PooledStringBuilder sb = StringBuilderPool.getInstance().getStringBuilder();
+        FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
+        this.mapDescPanel.setContent(room.getDisplayText());
+        if (!room.wasInitialTextDisplayed()) {
+            room.setInitialTextDisplayed(true);
+        }
+        sb.returnToPool();
+        sb = null;
     }
     /**
      * Processes the content for the status view.
@@ -173,7 +194,10 @@ public final class GameScreen extends ConsoleView {
         processStatsView();
         processCommandsView();
         processMapView();
+        actionPanel.setContent(
+                FFWebServiceClient.getInstance().loadText("choice"));
         cmdsPanel.join(statsPanel, Panel.LEFT, Panel.TOP);
+        cmdsPanel.join(actionPanel, Panel.TOP, Panel.CENTER);
         mapPanel.join(cmdsPanel, Panel.TOP, Panel.CENTER);
         OutputEvent.getInstance().print(mapPanel.getDisplayText(), this);
         try {
@@ -184,6 +208,6 @@ public final class GameScreen extends ConsoleView {
                     null); // arguments to be read from system.in
         } catch (NoSuchMethodException | SecurityException e) {
             throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-        } 
+        }
     }
 }

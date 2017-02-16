@@ -3,49 +3,38 @@ package com.dalonedrow.module.ff.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFCommand;
+import com.dalonedrow.pooled.PooledException;
+import com.dalonedrow.pooled.PooledStringBuilder;
+import com.dalonedrow.pooled.StringBuilderPool;
+import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
+import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.graph.GraphNode;
 import com.dalonedrow.rpg.graph.PhysicalGraphNode;
 import com.dalonedrow.utils.ArrayUtilities;
 
 /**
- * 
  * @author 588648
- *
  */
 public class FFRoomNode {
+    private List<FFCommand> commands;
+    private char[] displayText;
     /** the room's id. */
     private final int id;
+    /**
+     * the flag indicating whether the initial text has been displayed.
+     */
+    private boolean initialTextDisplayed;
     /** the index of the room's main node. */
     private int mainNode;
     /** the list of {@link GraphNode}s the room contains. */
     private PhysicalGraphNode[] nodes;
     /**
-     * the flag indicating whether the initial text has been displayed.
-     */
-    private boolean initialTextDisplayed;
-    /**
      * the flag indicating whether the player has visited the room before or
      * not.
      */
     private boolean visited;
-    /**
-     * Gets the flag indicating whether the player has visited the room before
-     * or not.
-     * @return <tt>true</tt> if the player has visited the room; <tt>false</tt>
-     * otherwise
-     */
-    public boolean isVisited() {
-        return visited;
-    }
-    /**
-     * Sets the flag indicating whether the player has visited the room before
-     * or not.
-     * @param flag the flag
-     */
-    public void setVisited(final boolean flag) {
-        this.visited = flag;
-    }
     /**
      * Creates a new instance of {@link FFRoomNode}.
      * @param roomId the room's id
@@ -55,6 +44,12 @@ public class FFRoomNode {
         mainNode = -1;
         nodes = new PhysicalGraphNode[0];
         commands = new ArrayList<FFCommand>();
+    }
+    public void addCommand(final FFCommand ffCommand) {
+        if (ffCommand != null
+                && !commands.contains(ffCommand)) {
+            commands.add(ffCommand);
+        }
     }
     /**
      * Adds a {@link GraphNode} to the room.
@@ -84,6 +79,15 @@ public class FFRoomNode {
             }
         }
         return contains;
+    }
+    public FFCommand[] getCommands() {
+        return commands.toArray(new FFCommand[commands.size()]);
+    }
+    /**
+     * @return the displayText
+     */
+    public String getDisplayText() {
+        return new String(displayText);
     }
     /**
      * Gets the room's id.
@@ -138,7 +142,6 @@ public class FFRoomNode {
         return has;
     }
     /**
-     * 
      * Determines if a room contains a specific {@link GraphNode}.
      * @param x the node's x-coordinates
      * @param y the node's y-coordinates
@@ -155,6 +158,46 @@ public class FFRoomNode {
         return has;
     }
     /**
+     * Gets the flag indicating whether the player has visited the room before
+     * or not.
+     * @return <tt>true</tt> if the player has visited the room; <tt>false</tt>
+     *         otherwise
+     */
+    public boolean isVisited() {
+        return visited;
+    }
+    /**
+     * @param displayText the displayText to set
+     */
+    public void setDisplayText(String text) {
+        displayText = text.toCharArray();
+    }
+    /**
+     * @param initialTextDisplayed the initialTextDisplayed to set
+     * @throws RPGException if an error occurs setting the secondary display
+     * text
+     */
+    public void setInitialTextDisplayed(final boolean flag)
+            throws RPGException {
+        initialTextDisplayed = flag;
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append(id);
+            sb.append("_SECONDARY");
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        try {
+            String s = FFWebServiceClient.getInstance().loadText(sb.toString());
+            displayText = s.toCharArray();
+        } catch (RPGException e) {
+            if (e.getErrorMessage() != ErrorMessage.INVALID_DATA_FORMAT) {
+                throw e;
+            }
+        }
+    }
+    /**
      * Sets the room's main node.
      * @param node the main node to set
      */
@@ -168,14 +211,18 @@ public class FFRoomNode {
     public void setMainNode(final int index) {
         mainNode = index;
     }
-    private List<FFCommand> commands;
-    public void addCommand(final FFCommand ffCommand) {
-        if (ffCommand != null
-                && !commands.contains(ffCommand)) {
-            commands.add(ffCommand);
-        }
+    /**
+     * Sets the flag indicating whether the player has visited the room before
+     * or not.
+     * @param flag the flag
+     */
+    public void setVisited(final boolean flag) {
+        visited = flag;
     }
-    public FFCommand[] getCommands() {
-        return commands.toArray(new FFCommand[commands.size()]);
+    /**
+     * @return the initialTextDisplayed
+     */
+    public boolean wasInitialTextDisplayed() {
+        return initialTextDisplayed;
     }
 }

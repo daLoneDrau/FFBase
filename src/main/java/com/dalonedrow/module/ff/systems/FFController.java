@@ -27,7 +27,7 @@ public final class FFController extends ProjectConstants<FFInteractiveObject> {
     }
     @Override
     public int getConsoleHeight() {
-        return 16;
+        return 20;
     }
     @Override
     public int getConsoleWidth() {

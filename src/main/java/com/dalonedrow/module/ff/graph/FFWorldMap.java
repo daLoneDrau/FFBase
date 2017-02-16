@@ -10,8 +10,10 @@ import java.util.List;
 import com.dalonedrow.engine.sprite.base.SimplePoint;
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.Diceroller;
+import com.dalonedrow.engine.systems.base.ProjectConstants;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
+import com.dalonedrow.module.ff.systems.FFController;
 import com.dalonedrow.module.ff.systems.FFInteractive;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
@@ -208,6 +210,17 @@ public class FFWorldMap {
                 }
             }
         }
+    }
+    /**
+     * Gets the room the player is occupying.
+     * @return {@link FFRoomNode}
+     * @throws RPGException if an error occurs
+     */
+    public FFRoomNode getPlayerRoom() throws RPGException {
+        return this.getRoomByCellCoordinates(
+                ((FFController)
+                        ProjectConstants.getInstance())
+                .getPlayerIO().getPosition());
     }
     public String renderViewport() {
         PooledStringBuilder sb =
