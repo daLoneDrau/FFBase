@@ -1,27 +1,17 @@
 package com.dalonedrow.module.ff.systems;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import com.dalonedrow.engine.sprite.base.SimplePoint;
 import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
 import com.dalonedrow.module.ff.rpg.FFCharacter;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
-import com.dalonedrow.module.ff.rpg.FFItem;
-import com.dalonedrow.module.ff.rpg.FFScriptable;
 import com.dalonedrow.module.ff.scripts.pc.Hero;
 import com.dalonedrow.rpg.base.constants.IoGlobals;
-import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
-import com.dalonedrow.rpg.base.flyweights.Scriptable;
-import com.dalonedrow.rpg.base.systems.Script;
 import com.dalonedrow.utils.ArrayUtilities;
 
 /**
- * 
  * @author 588648
- *
  */
 @SuppressWarnings("unchecked")
 public class FFInteractive extends Interactive<FFInteractiveObject> {
@@ -39,30 +29,30 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
-    public FFInteractiveObject getIoAtPosition(final SimplePoint pt) {
-        FFInteractiveObject io = null;
-        for (int i = objs.length - 1; i >= 0; i--) {
-            FFInteractiveObject ioo = objs[i];
-            if (ioo != null
-                    && ioo.getPosition()!= null
-                    && ioo.getPosition().equals(pt)) {
-                io = ioo;
-            }
-        }
-        return io;
-    }
     @Override
     public FFInteractiveObject addItem(String item, long flags)
             throws RPGException {
         // TODO Auto-generated method stub
         return null;
     }
-
     @Override
     public void ARX_INTERACTIVE_ForceIOLeaveZone(FFInteractiveObject io,
             long flags) {
         // TODO Auto-generated method stub
 
+    }
+
+    public FFInteractiveObject getIoAtPosition(final SimplePoint pt) {
+        FFInteractiveObject io = null;
+        for (int i = objs.length - 1; i >= 0; i--) {
+            FFInteractiveObject ioo = objs[i];
+            if (ioo != null
+                    && ioo.getPosition() != null
+                    && ioo.getPosition().equals(pt)) {
+                io = ioo;
+            }
+        }
+        return io;
     }
     @Override
     protected FFInteractiveObject[] getIOs() {
@@ -75,8 +65,8 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
     public FFInteractiveObject getMasterScript() {
         FFInteractiveObject io = getNewIO();
         // TODO - set master script
-        //io.setScript(new MasterScript());
-        //io.addIOFlag(FFIo.IO_16_IMMORTAL);
+        // io.setScript(new MasterScript());
+        // io.addIOFlag(FFIo.IO_16_IMMORTAL);
         return io;
     }
     @Override
@@ -120,8 +110,8 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         io.addIOFlag(IoGlobals.IO_01_PC);
         io.setPCData(new FFCharacter());
         io.getPCData().newHero();
-        ((FFController)
-                ProjectConstants.getInstance()).setPlayer(io.getRefId());
+        ((FFController) ProjectConstants.getInstance())
+                .setPlayer(io.getRefId());
         io.setScript(new Hero(io));
         return io;
     }

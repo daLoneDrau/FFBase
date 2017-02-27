@@ -1,6 +1,9 @@
 package com.dalonedrow.module.ff.systems;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -27,35 +30,9 @@ public class CombatTest {
         combat = new Combat();
     }
     @Test
-    public void canRunRandomRound() throws RPGException {
-        FFInteractiveObject playerIO = 
-                ((FFInteractive) FFInteractive.getInstance()).newHero();
-        playerIO.setPosition(new SimpleVector2());
-        assertTrue("Player was created", Interactive.getInstance().hasIO(
-                ProjectConstants.getInstance().getPlayer()));
-        FFInteractiveObject enemyIO =
-                FFWebServiceClient.getInstance().loadNPC("ORC_SENTRY");
-        // WHEN IO ADDED TO SCENE, SHOW SET TO 1, POSITION SET
-        enemyIO.setShow(1);
-        enemyIO.setPosition(new SimpleVector2());
-        enemyIO.setInitPosition(new SimpleVector2());
-        assertEquals("enemy stamina is 5", 5,
-                enemyIO.getNPCData().getFullAttributeScore("ST"), 0.000001f);
-        combat.addEnemy(enemyIO);
-        while (!combat.isOver()) {
-            combat.doRound();
-            for (int i = 0, len = combat.getMessages().length; i < len; i++) {
-                System.out.println(combat.getMessages()[i]);
-            }
-            System.out.print("-------------ROUND ");
-            System.out.println(Script.getInstance().getGlobalIntVariableValue("COMBATROUND"));
-        }
-        System.out.println("end canRunRandomRound\n\n\n");
-    }
-    @Test
     public void canKillPlayer() throws RPGException {
-        FFInteractiveObject playerIO = 
-                ((FFInteractive) FFInteractive.getInstance()).newHero();
+        FFInteractiveObject playerIO =
+                ((FFInteractive) Interactive.getInstance()).newHero();
         playerIO.setPosition(new SimpleVector2());
         assertTrue("Player was created", Interactive.getInstance().hasIO(
                 ProjectConstants.getInstance().getPlayer()));
@@ -75,15 +52,16 @@ public class CombatTest {
                 System.out.println(combat.getMessages()[i]);
             }
             System.out.print("-------------ROUND ");
-            System.out.println(Script.getInstance().getGlobalIntVariableValue("COMBATROUND"));
+            System.out.println(Script.getInstance()
+                    .getGlobalIntVariableValue("COMBATROUND"));
         }
         System.out.println("end killplayer\n\n\n");
     }
     @Test
     public void canKillSimpleEnemy() throws RPGException {
-        ((FFInteractive) FFInteractive.getInstance()).newHero();
+        ((FFInteractive) Interactive.getInstance()).newHero();
         ((FFController) ProjectConstants.getInstance()).getPlayerIO()
-        .setPosition(new SimpleVector2());
+                .setPosition(new SimpleVector2());
         assertTrue("Player was created", Interactive.getInstance().hasIO(
                 ProjectConstants.getInstance().getPlayer()));
         FFInteractiveObject enemyIO =
@@ -96,7 +74,7 @@ public class CombatTest {
                 enemyIO.getNPCData().getFullAttributeScore("ST"), 0.000001f);
         combat.addEnemy(enemyIO);
         // test player hitting
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 1
         combat.setTestingMode(Combat.TEST_MODE_PLAYER_HITS);
         combat.doRound();
@@ -113,7 +91,7 @@ public class CombatTest {
         // no ouch time because pain threshold > damage
         assertEquals("enemy hit in round 0", 0,
                 enemyIO.getScript().getLocalIntVariableValue("ouch_time"));
-        
+
         // reset enemy health
         enemyIO.getNPCData().healNPC(2);
         assertEquals("enemy stamina is 5", 5,
@@ -123,7 +101,7 @@ public class CombatTest {
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 1");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 2
         combat.setTestingMode(Combat.TEST_MODE_PLAYER_HITS_LUCKY);
         combat.doRound();
@@ -144,7 +122,7 @@ public class CombatTest {
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 2");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 3
         combat.setTestingMode(Combat.TEST_MODE_PLAYER_HITS_UNLUCKY);
         combat.doRound();
@@ -165,10 +143,10 @@ public class CombatTest {
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 3");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 4
-        float plrST = ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
+        float plrST = ((FFController) ProjectConstants.getInstance())
+                .getPlayerIO().getPCData()
                 .getFullAttributeScore("ST");
         combat.setTestingMode(Combat.TEST_MODE_CREATURE_HITS);
         combat.doRound();
@@ -176,23 +154,25 @@ public class CombatTest {
                 Script.getInstance().getGlobalIntVariableValue("COMBATROUND"),
                 4);
         assertEquals("after round 4, player takes 2 damage", plrST - 2,
-                ((FFController)
-                        ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                        .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         // reset player health
-        ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
-        .ARX_DAMAGES_HealPlayer(5);
+        ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                .getPCData()
+                .ARX_DAMAGES_HealPlayer(5);
         assertEquals("player stamina is full", plrST,
-                ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         for (int i = 0, len = combat.getMessages().length; i < len; i++) {
             System.out.println(combat.getMessages()[i]);
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 4");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 5
         combat.setTestingMode(Combat.TEST_MODE_CREATURE_HITS_LUCKY);
         combat.doRound();
@@ -200,23 +180,25 @@ public class CombatTest {
                 Script.getInstance().getGlobalIntVariableValue("COMBATROUND"),
                 5);
         assertEquals("after round 5, player takes 1 damage", plrST - 1,
-                ((FFController)
-                        ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                        .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         // reset player health
-        ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
-        .ARX_DAMAGES_HealPlayer(5);
+        ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                .getPCData()
+                .ARX_DAMAGES_HealPlayer(5);
         assertEquals("player stamina is full", plrST,
-                ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         for (int i = 0, len = combat.getMessages().length; i < len; i++) {
             System.out.println(combat.getMessages()[i]);
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 5");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 6
         combat.setTestingMode(Combat.TEST_MODE_CREATURE_HITS_UNLUCKY);
         combat.doRound();
@@ -224,23 +206,25 @@ public class CombatTest {
                 Script.getInstance().getGlobalIntVariableValue("COMBATROUND"),
                 6);
         assertEquals("after round 6, player takes 3 damage", plrST - 3,
-                ((FFController)
-                        ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                        .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         // reset player health
-        ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
-        .ARX_DAMAGES_HealPlayer(5);
+        ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                .getPCData()
+                .ARX_DAMAGES_HealPlayer(5);
         assertEquals("player stamina is full", plrST,
-                ((FFController)
-                ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         for (int i = 0, len = combat.getMessages().length; i < len; i++) {
             System.out.println(combat.getMessages()[i]);
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 6");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 7
         combat.setTestingMode(Combat.TEST_MODE_BOTH_MISS);
         combat.doRound();
@@ -248,9 +232,10 @@ public class CombatTest {
                 Script.getInstance().getGlobalIntVariableValue("COMBATROUND"),
                 7);
         assertEquals("after round 7, player takes no damage", plrST,
-                ((FFController)
-                        ProjectConstants.getInstance()).getPlayerIO().getPCData()
-                        .getFullAttributeScore("ST"), 0.000001f);
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                        .getPCData()
+                        .getFullAttributeScore("ST"),
+                0.000001f);
         assertEquals("after round 7, enemy stamina is 5", 5,
                 enemyIO.getNPCData().getFullAttributeScore("ST"), 0.000001f);
         for (int i = 0, len = combat.getMessages().length; i < len; i++) {
@@ -258,7 +243,7 @@ public class CombatTest {
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 7");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 8
         combat.setTestingMode(Combat.TEST_MODE_PLAYER_HITS_LUCKY);
         combat.doRound();
@@ -272,7 +257,7 @@ public class CombatTest {
         }
         assertFalse(combat.isOver());
         System.out.println("-------------ROUND 8");
-        //*********************************************************************
+        // *********************************************************************
         // ROUND 9
         combat.setTestingMode(Combat.TEST_MODE_PLAYER_HITS_LUCKY);
         combat.doRound();
@@ -287,5 +272,32 @@ public class CombatTest {
         assertTrue(combat.isOver());
         System.out.println("-------------ROUND 9");
         System.out.println("end killsimpleEnemy\n\n\n");
+    }
+    @Test
+    public void canRunRandomRound() throws RPGException {
+        FFInteractiveObject playerIO =
+                ((FFInteractive) Interactive.getInstance()).newHero();
+        playerIO.setPosition(new SimpleVector2());
+        assertTrue("Player was created", Interactive.getInstance().hasIO(
+                ProjectConstants.getInstance().getPlayer()));
+        FFInteractiveObject enemyIO =
+                FFWebServiceClient.getInstance().loadNPC("ORC_SENTRY");
+        // WHEN IO ADDED TO SCENE, SHOW SET TO 1, POSITION SET
+        enemyIO.setShow(1);
+        enemyIO.setPosition(new SimpleVector2());
+        enemyIO.setInitPosition(new SimpleVector2());
+        assertEquals("enemy stamina is 5", 5,
+                enemyIO.getNPCData().getFullAttributeScore("ST"), 0.000001f);
+        combat.addEnemy(enemyIO);
+        while (!combat.isOver()) {
+            combat.doRound();
+            for (int i = 0, len = combat.getMessages().length; i < len; i++) {
+                System.out.println(combat.getMessages()[i]);
+            }
+            System.out.print("-------------ROUND ");
+            System.out.println(Script.getInstance()
+                    .getGlobalIntVariableValue("COMBATROUND"));
+        }
+        System.out.println("end canRunRandomRound\n\n\n");
     }
 }

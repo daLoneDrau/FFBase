@@ -11,6 +11,7 @@ import com.dalonedrow.module.ff.graph.FFRoomNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFCommand;
+import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.systems.FFController;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
@@ -22,6 +23,7 @@ import com.dalonedrow.rpg.base.consoleui.Panel;
 import com.dalonedrow.rpg.base.consoleui.TextProcessor;
 import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
+import com.dalonedrow.rpg.base.systems.Script;
 
 /**
  * @author drau
@@ -49,10 +51,10 @@ public final class GameScreen extends ConsoleView {
     private final int COMMANDS_TABLE_WIDTH;
     /** the current index. */
     private int index;
-    /** the panel displaying the room view. */
-    private final Panel mapPanel;
     /** the panel displaying the room description. */
     private final Panel mapDescPanel;
+    /** the panel displaying the room view. */
+    private final Panel mapPanel;
     /** the panel displayed. */
     private Panel panel;
     /** the width of the stats table, with borders. */
@@ -77,9 +79,16 @@ public final class GameScreen extends ConsoleView {
     /**
      * Processes user input to go to the next screen.
      * @param s not used
+     * @throws RPGException 
      * @throws Exception if an error occurs
      */
-    public void actionProcessInput(final String s) {}
+    public void actionProcessInput(final String s) throws RPGException {
+        FFInteractiveObject player =
+                ((FFController) FFController.getInstance()).getPlayerIO();
+        if (FFCommand.EAST.name().equalsIgnoreCase(s)) {
+            Script.getInstance().sendIOScriptEvent(player, 0, null, "East");
+        }
+    }
     /**
      * {@inheritDoc}
      */
@@ -161,9 +170,10 @@ public final class GameScreen extends ConsoleView {
      */
     private void processMapView() throws RPGException {
         mapPanel.setContent(FFWorldMap.getInstance().renderViewport());
-        PooledStringBuilder sb = StringBuilderPool.getInstance().getStringBuilder();
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
         FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
-        this.mapDescPanel.setContent(room.getDisplayText());
+        mapDescPanel.setContent(room.getDisplayText());
         if (!room.wasInitialTextDisplayed()) {
             room.setInitialTextDisplayed(true);
         }

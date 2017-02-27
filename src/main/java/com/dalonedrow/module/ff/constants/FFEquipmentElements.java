@@ -38,7 +38,8 @@ public class FFEquipmentElements {
                 element = new FFEquipmentElements(obj.get("code").getAsString(),
                         obj.get("value").getAsInt());
             } else {
-                element = new FFEquipmentElements(obj.get("code").getAsString());
+                element =
+                        new FFEquipmentElements(obj.get("code").getAsString());
             }
             values = ArrayUtilities.getInstance().extendArray(element, values);
         }

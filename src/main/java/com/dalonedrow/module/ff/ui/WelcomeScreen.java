@@ -41,7 +41,7 @@ public final class WelcomeScreen extends ConsoleView {
     private WelcomeScreen() {
         try {
             text = FFWebServiceClient.getInstance().loadText(
-                    //"START").split("\r\n");
+                    // "START").split("\r\n");
                     "START").split("\n");
             for (int i = text.length - 1; i >= 0; i--) {
                 text[i] = TextProcessor.getInstance().wrapText(

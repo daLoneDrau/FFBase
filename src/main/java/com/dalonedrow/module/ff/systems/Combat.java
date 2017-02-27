@@ -527,7 +527,8 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
     }
     public boolean isOver() throws RPGException {
         boolean over = false;
-        if (((FFController) FFController.getInstance()).getPlayerIO().getPCData().getFullAttributeScore("ST") <= 0f) {
+        if (((FFController) ProjectConstants.getInstance()).getPlayerIO()
+                .getPCData().getFullAttributeScore("ST") <= 0f) {
             over = true;
         }
         if (!over) {

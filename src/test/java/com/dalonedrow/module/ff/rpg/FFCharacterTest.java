@@ -1,23 +1,19 @@
 package com.dalonedrow.module.ff.rpg;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import org.apache.http.client.ClientProtocolException;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.dalonedrow.module.ff.constants.FFEquipmentElements;
-import com.dalonedrow.module.ff.constants.FFEquipmentSlots;
-import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
-import com.dalonedrow.module.ff.rpg.FFItem;
+import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.module.ff.systems.FFController;
 import com.dalonedrow.module.ff.systems.FFInteractive;
 import com.dalonedrow.module.ff.systems.FFScript;
-import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.rpg.base.constants.EquipmentGlobals;
-import com.dalonedrow.rpg.base.flyweights.EquipmentItemModifier;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
 public class FFCharacterTest {
@@ -41,9 +37,8 @@ public class FFCharacterTest {
         assertEquals("dmg is 0", 0, pc.getFullAttributeScore("DMG"), 0.00f);
         int wid = pc.getEquippedItem(EquipmentGlobals.EQUIP_SLOT_WEAPON);
         assertTrue("weapon slot IS empty", wid == -1);
-        
-        pc = ((FFInteractive)
-                FFInteractive.getInstance()).newHero().getPCData();
+
+        pc = ((FFInteractive) Interactive.getInstance()).newHero().getPCData();
         assertTrue("stam is at least 14", 14 <= pc.getFullAttributeScore("ST"));
         assertTrue("skill is at most 24", 24 >= pc.getFullAttributeScore("ST"));
         assertEquals("stam=maxst", pc.getFullAttributeScore("ST"),
@@ -59,9 +54,9 @@ public class FFCharacterTest {
         assertEquals("damage is 2", 2, pc.getFullAttributeScore("DMG"), 0.00f);
         wid = pc.getEquippedItem(EquipmentGlobals.EQUIP_SLOT_WEAPON);
         assertTrue("weapon slot NOT empty", wid >= 0);
-        FFInteractiveObject wio = (FFInteractiveObject)
-                FFInteractive.getInstance().getIO(wid);
+        FFInteractiveObject wio =
+                (FFInteractiveObject) Interactive.getInstance().getIO(wid);
         assertEquals("weapon is iron sword", "Iron Sword",
                 new String(wio.getItemData().getItemName()));
-    }    
+    }
 }

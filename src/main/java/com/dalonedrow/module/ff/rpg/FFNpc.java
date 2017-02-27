@@ -122,6 +122,10 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
         return super.getFullAttributeScore("DMG");
     }
     @Override
+    public float getMaxLife() {
+        return super.getBaseAttributeScore("MST");
+    }
+    @Override
     public int getPoisonned() {
         // TODO Auto-generated method stub
         return 0;
@@ -163,9 +167,5 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
     protected void stopIdleAnimation() {
         // TODO Auto-generated method stub
 
-    }
-    @Override
-    public float getMaxLife() {
-        return super.getBaseAttributeScore("MST");
     }
 }

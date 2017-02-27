@@ -1,25 +1,25 @@
 package com.dalonedrow.module.ff.rpg;
 
 public enum FFCommand {
-    NORTH(0),
-    SOUTH(1),
-    WEST(2),
-    EAST(3),
-    TALK(4),
-    GIVE(5),
     ATTACK(6),
-    OPEN(7),
-    SMASH(8),
-    TAKE(9),
-    SIT(10),
-    STEP(11),
     BRIBE(12),
-    INTIMIDATE(13),
-    THROW(14),
+    EAST(3),
     EAT(15),
+    GIVE(5),
+    INTIMIDATE(13),
+    INVENTORY(18),
+    NORTH(0),
+    OPEN(7),
     SEARCH(16),
+    SIT(10),
+    SMASH(8),
+    SOUTH(1),
+    STEP(11),
+    TAKE(9),
+    TALK(4),
+    THROW(14),
     USE(17),
-    INVENTORY(18);
+    WEST(2);
     private int sortOrder;
     /**
      * Creates a new instance of {@link FFCommand}.

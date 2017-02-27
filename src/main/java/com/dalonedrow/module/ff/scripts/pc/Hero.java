@@ -1,10 +1,12 @@
 package com.dalonedrow.module.ff.scripts.pc;
 
+import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.rpg.base.constants.ScriptConsts;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
+import com.dalonedrow.rpg.base.flyweights.ScriptConstants;
 import com.dalonedrow.rpg.base.flyweights.SpeechParameters;
 import com.dalonedrow.rpg.base.systems.Script;
 
@@ -38,6 +40,13 @@ public class Hero extends FFScriptable {
      */
     private void initLocalVars() throws RPGException {
         setLocalVarCombatMessage("");
+    }
+    public int onEast() throws RPGException {
+        System.out.println("on east");
+        // get room occupied
+        FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
+        room.e
+        return ScriptConstants.ACCEPT;
     }
     @Override
     public int onInit() throws RPGException {

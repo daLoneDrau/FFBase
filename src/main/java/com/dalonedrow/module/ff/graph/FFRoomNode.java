@@ -175,7 +175,7 @@ public class FFRoomNode {
     /**
      * @param initialTextDisplayed the initialTextDisplayed to set
      * @throws RPGException if an error occurs setting the secondary display
-     * text
+     *             text
      */
     public void setInitialTextDisplayed(final boolean flag)
             throws RPGException {

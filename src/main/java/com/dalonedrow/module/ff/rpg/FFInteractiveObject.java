@@ -49,13 +49,15 @@ public class FFInteractiveObject extends BaseInteractiveObject<FFItem,
     }
     /**
      * {@inheritDoc}
+     * @throws RPGException
      */
     @Override
-    public void setPosition(final SimpleVector2 val) {
+    public void setPosition(final SimplePoint val) throws RPGException {
         if (super.hasIOFlag(IoGlobals.IO_01_PC)) {
             // this is the player
             try {
-                FFWorldMap.getInstance().getRoomByCellCoordinates(val).setVisited(true);
+                FFWorldMap.getInstance().getRoomByCellCoordinates(val)
+                        .setVisited(true);
             } catch (RPGException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -65,14 +67,14 @@ public class FFInteractiveObject extends BaseInteractiveObject<FFItem,
     }
     /**
      * {@inheritDoc}
-     * @throws RPGException 
      */
     @Override
-    public void setPosition(final SimplePoint val) throws RPGException {
+    public void setPosition(final SimpleVector2 val) {
         if (super.hasIOFlag(IoGlobals.IO_01_PC)) {
             // this is the player
             try {
-                FFWorldMap.getInstance().getRoomByCellCoordinates(val).setVisited(true);
+                FFWorldMap.getInstance().getRoomByCellCoordinates(val)
+                        .setVisited(true);
             } catch (RPGException e) {
                 e.printStackTrace();
                 System.exit(1);

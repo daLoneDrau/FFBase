@@ -5,13 +5,10 @@ import com.dalonedrow.rpg.base.consoleui.Panel;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
 /**
- * 
  * @author 588648
- *
  */
 public class FFPanel extends Panel {
     /**
-     * 
      * @param w
      * @param b
      * @param h
@@ -22,7 +19,7 @@ public class FFPanel extends Panel {
     /**
      * Creates a new instance of {@link FFPanel}.
      * @param width the number of characters in the panel, including borders and
-     * padding
+     *            padding
      * @param bordered flag indicating whether the panel is bordered
      * @param height the panel's height in lines, including borders
      * @param text the text displayed in the panel
@@ -34,7 +31,7 @@ public class FFPanel extends Panel {
     }
     /**
      * {@inheritDoc}
-     * @throws RPGException 
+     * @throws RPGException
      */
     @Override
     protected String getTitledTableMarkup() throws RPGException {
@@ -42,7 +39,7 @@ public class FFPanel extends Panel {
     }
     /**
      * {@inheritDoc}
-     * @throws RPGException 
+     * @throws RPGException
      */
     @Override
     protected String getUnTitledTableMarkup() throws RPGException {

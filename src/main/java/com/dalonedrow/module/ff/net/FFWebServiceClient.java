@@ -427,6 +427,7 @@ public final class FFWebServiceClient extends WebServiceClient {
                     }
                     commands = null;
                 }
+                System.out.println("get text for room "+room.getId());
                 room.setDisplayText(loadText(Integer.toString(room.getId())));
                 obj = null;
             }

@@ -8,13 +8,6 @@ import com.dalonedrow.rpg.base.constants.EquipmentGlobals;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
 public final class FFController extends ProjectConstants<FFInteractiveObject> {
-    /* (non-Javadoc)
-     * @see com.dalonedrow.engine.systems.base.ProjectConstants#isGameOver()
-     */
-    @Override
-    public boolean isGameOver() {
-        return false;
-    }
     private boolean menusOn;
     /** the player IO's id. */
     private int playerId = -1;
@@ -58,6 +51,14 @@ public final class FFController extends ProjectConstants<FFInteractiveObject> {
     public FFInteractiveObject getPlayerIO() throws RPGException {
         return (FFInteractiveObject) Interactive.getInstance().getIO(
                 playerId);
+    }
+    /*
+     * (non-Javadoc)
+     * @see com.dalonedrow.engine.systems.base.ProjectConstants#isGameOver()
+     */
+    @Override
+    public boolean isGameOver() {
+        return false;
     }
     /**
      * @return the menusOn

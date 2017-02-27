@@ -10,6 +10,7 @@ import java.util.List;
 import com.dalonedrow.engine.sprite.base.SimplePoint;
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.Diceroller;
+import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
@@ -92,6 +93,16 @@ public class FFWorldMap {
             PhysicalGraphNode from = (PhysicalGraphNode) l.get(i);
             System.out.println(from.getLocation());
         }
+    }
+    /**
+     * Gets the room the player is occupying.
+     * @return {@link FFRoomNode}
+     * @throws RPGException if an error occurs
+     */
+    public FFRoomNode getPlayerRoom() throws RPGException {
+        return this.getRoomByCellCoordinates(
+                ((FFController) ProjectConstants.getInstance())
+                        .getPlayerIO().getPosition());
     }
     /**
      * Gets a room by its number.
@@ -211,17 +222,6 @@ public class FFWorldMap {
             }
         }
     }
-    /**
-     * Gets the room the player is occupying.
-     * @return {@link FFRoomNode}
-     * @throws RPGException if an error occurs
-     */
-    public FFRoomNode getPlayerRoom() throws RPGException {
-        return this.getRoomByCellCoordinates(
-                ((FFController)
-                        ProjectConstants.getInstance())
-                .getPlayerIO().getPosition());
-    }
     public String renderViewport() {
         PooledStringBuilder sb =
                 StringBuilderPool.getInstance().getStringBuilder();
@@ -265,52 +265,57 @@ public class FFWorldMap {
                                 sb.append("###");
                             } else {
                                 // this is a floor
-                                FFInteractiveObject io = ((FFInteractive)
-                                        FFInteractive.getInstance())
-                                        .getIoAtPosition(node.getLocation());
+                                FFInteractiveObject io =
+                                        ((FFInteractive) Interactive
+                                                .getInstance())
+                                                        .getIoAtPosition(node
+                                                                .getLocation());
                                 if (io != null) {
                                     if (io.hasIOFlag(IoGlobals.IO_01_PC)) {
                                         sb.append(" @ ");
-                                    } else if (io.hasIOFlag(IoGlobals.IO_03_NPC)) {
+                                    } else if (io
+                                            .hasIOFlag(IoGlobals.IO_03_NPC)) {
                                         sb.append(' ');
                                         sb.append(Character.toUpperCase(
                                                 io.getNPCData().getTitle()[0]));
                                         sb.append(' ');
-                                    } else if (io.hasIOFlag(IoGlobals.IO_02_ITEM)) {
+                                    } else if (io
+                                            .hasIOFlag(IoGlobals.IO_02_ITEM)) {
                                         sb.append(' ');
                                         sb.append(Character.toUpperCase(
-                                                io.getItemData().getTitle().charAt(0)));
+                                                io.getItemData().getTitle()
+                                                        .charAt(0)));
                                         sb.append(' ');
                                     }
                                 } else {
-                                // TODO - check for IOs in node
-                                for (int f = 3; f > 0; f--) {
-                                    switch (Diceroller.getInstance()
-                                            .rolldX(10)) {
-                                    case 1:
-                                    case 2:
-                                    case 3:
-                                    case 4:
-                                    case 5:
-                                        sb.append(' ');
-                                        break;
-                                    case 6:
-                                        sb.append(',');
-                                        break;
-                                    case 7:
-                                        sb.append('`');
-                                        break;
-                                    case 8:
-                                        sb.append(';');
-                                        break;
-                                    case 9:
-                                        sb.append('\'');
-                                        break;
-                                    case 10:
-                                        sb.append('.');
-                                        break;
+                                    // TODO - check for IOs in node
+                                    for (int f = 3; f > 0; f--) {
+                                        switch (Diceroller.getInstance()
+                                                .rolldX(10)) {
+                                        case 1:
+                                        case 2:
+                                        case 3:
+                                        case 4:
+                                        case 5:
+                                            sb.append(' ');
+                                            break;
+                                        case 6:
+                                            sb.append(',');
+                                            break;
+                                        case 7:
+                                            sb.append('`');
+                                            break;
+                                        case 8:
+                                            sb.append(';');
+                                            break;
+                                        case 9:
+                                            sb.append('\'');
+                                            break;
+                                        case 10:
+                                            sb.append('.');
+                                            break;
+                                        }
                                     }
-                                }
                                 }
                             }
                             // get next node
