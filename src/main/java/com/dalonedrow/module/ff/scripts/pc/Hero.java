@@ -1,8 +1,12 @@
 package com.dalonedrow.module.ff.scripts.pc;
 
+import com.dalonedrow.module.ff.graph.FFRoomNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
+import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
+import com.dalonedrow.module.ff.systems.FFController;
+import com.dalonedrow.module.ff.ui.GameScreen;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.rpg.base.constants.ScriptConsts;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
@@ -41,12 +45,27 @@ public class Hero extends FFScriptable {
     private void initLocalVars() throws RPGException {
         setLocalVarCombatMessage("");
     }
+    public int onEnterRoom12() throws RPGException {
+        FFInteractiveObject io = FFWebServiceClient.getInstance().loadNPC("DOOR_12");
+        return ScriptConstants.ACCEPT;
+    }
     public int onEast() throws RPGException {
-        System.out.println("on east");
         // get room occupied
         FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
-        room.e
+        switch (room.getId()) {
+        case 1:
+            goEastRoom1();
+            break;
+        }
         return ScriptConstants.ACCEPT;
+    }
+    private void goEastRoom1() throws RPGException {
+        // put hero in room 12
+        super.getIO().setPosition(FFWorldMap.getInstance().getRoom(
+                12).getMainNode().getLocation());
+        // add action text
+        GameScreen.getInstance().addMessage(
+                FFWebServiceClient.getInstance().loadText("1_EAST"));
     }
     @Override
     public int onInit() throws RPGException {

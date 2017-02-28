@@ -3,6 +3,7 @@ package com.dalonedrow.module.ff.ui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
@@ -26,8 +27,28 @@ import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.base.systems.Script;
 
 /**
- * @author drau
+ * @author 588648
  */
+final class FFCommandComparator implements Comparator<FFCommand> {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int compare(final FFCommand o1, final FFCommand o2) {
+        int compares = 0;
+        if (o1.getSortOrder() < o2.getSortOrder()) {
+            compares = -1;
+        } else if (o1.getSortOrder() < o2.getSortOrder()) {
+            compares = 1;
+        }
+        return compares;
+    }
+}
+
+/**
+ * @author 588648
+ */
+@SuppressWarnings("unchecked")
 public final class GameScreen extends ConsoleView {
     /** the one and only instance of the <code>WelcomeScreen</code> class. */
     private static GameScreen instance;
@@ -43,48 +64,58 @@ public final class GameScreen extends ConsoleView {
         }
         return GameScreen.instance;
     }
-    /** the panel displaying the action prompt. */
-    private final Panel actionPanel;
-    /** the panel displaying the commands. */
-    private final Panel cmdsPanel;
-    /** the width of the stats table, with borders. */
-    private final int COMMANDS_TABLE_WIDTH;
+    /** command sorter. */
+    private FFCommandComparator commandSorter;
     /** the current index. */
     private int index;
-    /** the panel displaying the room description. */
-    private final Panel mapDescPanel;
-    /** the panel displaying the room view. */
-    private final Panel mapPanel;
     /** the panel displayed. */
     private Panel panel;
-    /** the width of the stats table, with borders. */
-    private final int STATS_TABLE_WIDTH;
+    /** the panel displaying the action prompt. */
+    private final Panel pnlAction;
+    /** the panel displaying the commands. */
+    private final Panel pnlCmds;
+    /** the panel displaying the room view. */
+    private final Panel pnlMap;
+    /** the panel displaying the room description. */
+    private final Panel pnlMapDesc;
+    /** the message panel. */
+    private final Panel pnlMsg;
     /** the panel displaying the stats. */
-    private final Panel statsPanel;
-    /** the intro text. */
-    private String[] text;
+    private final Panel pnlStats;
+    /** the width of the stats table, with borders. */
+    private final int widthCommandsTable;
+    /** the width of the stats table, with borders. */
+    private final int widthStatsTable;
     /** Hidden constructor. */
     private GameScreen() {
         final int padding = 4;
+        final int mapHeight = 11, mapDescHeight = 4;
+        final int statsHeight = 5, commandsHeight = 5;
         final int screenWidth =
                 ProjectConstants.getInstance().getConsoleWidth();
-        STATS_TABLE_WIDTH = "Stamina: 99/99".length() + padding;
-        COMMANDS_TABLE_WIDTH = screenWidth - STATS_TABLE_WIDTH;
-        mapPanel = new FFPanel(screenWidth, false, 11, "", "");
-        mapDescPanel = new FFPanel(screenWidth, false, 4, "", "");
-        actionPanel = new FFPanel(screenWidth, false, 1, "", "");
-        statsPanel = new FFPanel(STATS_TABLE_WIDTH, true, 5, "", "STATUS");
-        cmdsPanel = new FFPanel(COMMANDS_TABLE_WIDTH, true, 5, "", "COMMANDS");
+        widthStatsTable = "Stamina: 99/99".length() + padding;
+        widthCommandsTable = screenWidth - widthStatsTable;
+        pnlMap = new FFPanel(screenWidth, false, mapHeight, "", "");
+        pnlMapDesc = new FFPanel(screenWidth, false, mapDescHeight, "", "");
+        pnlMsg = new FFPanel(screenWidth, true, 3, "", "");
+        pnlAction = new FFPanel(screenWidth, false, 1, "", "");
+        pnlStats =
+                new FFPanel(widthStatsTable, true, statsHeight, "", "STATUS");
+        pnlCmds = new FFPanel(widthCommandsTable, true, commandsHeight, "",
+                "COMMANDS");
+        commandSorter = new FFCommandComparator();
+        messageText = "";
     }
     /**
      * Processes user input to go to the next screen.
-     * @param s not used
-     * @throws RPGException 
-     * @throws Exception if an error occurs
+     * @param s user input
+     * @throws RPGException if an error occurs
      */
     public void actionProcessInput(final String s) throws RPGException {
+        // clear old messages
+        messageText = "";
         FFInteractiveObject player =
-                ((FFController) FFController.getInstance()).getPlayerIO();
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO();
         if (FFCommand.EAST.name().equalsIgnoreCase(s)) {
             Script.getInstance().sendIOScriptEvent(player, 0, null, "East");
         }
@@ -97,13 +128,26 @@ public final class GameScreen extends ConsoleView {
         // TODO Auto-generated method stub
 
     }
+    private String messageText;
     /**
      * {@inheritDoc}
      */
     @Override
-    public void addMessage(String text) {
-        // TODO Auto-generated method stub
-
+    public void addMessage(final String text) throws RPGException {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append(messageText);
+            if (messageText.length() > 0) {
+                sb.append("\n");
+            }
+            sb.append(text);
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        messageText = sb.toString();
+        sb.returnToPool();
+        sb = null;
     }
     /**
      * {@inheritDoc}
@@ -134,7 +178,7 @@ public final class GameScreen extends ConsoleView {
         commands.add(FFCommand.SEARCH);
         commands.add(FFCommand.USE);
         commands.add(FFCommand.INVENTORY);
-        Collections.sort(commands);
+        Collections.sort(commands, commandSorter);
         List<String> list = new ArrayList<String>();
         int lenw = 0;
         for (int i = 0, len = commands.size(); i < len; i++) {
@@ -142,10 +186,10 @@ public final class GameScreen extends ConsoleView {
             lenw += commands.get(i).name().length();
         }
         lenw += commands.size() * 3;
-        if (lenw < COMMANDS_TABLE_WIDTH - 4) {
+        if (lenw < widthCommandsTable - 4) {
             PooledStringBuilder sb =
                     StringBuilderPool.getInstance().getStringBuilder();
-            for (int i = COMMANDS_TABLE_WIDTH - 4 - lenw; i > 0; i--) {
+            for (int i = widthCommandsTable - 4 - lenw; i > 0; i--) {
                 try {
                     sb.append(' ');
                 } catch (PooledException e) {
@@ -156,7 +200,7 @@ public final class GameScreen extends ConsoleView {
             sb.returnToPool();
             sb = null;
         }
-        cmdsPanel.setContent(
+        pnlCmds.setContent(
                 TextProcessor.getInstance().getSelectionsAsColumns(9,
                         list.toArray(new String[list.size()]), "   "));
         pos = null;
@@ -169,11 +213,11 @@ public final class GameScreen extends ConsoleView {
      * @throws RPGException if an error occurs
      */
     private void processMapView() throws RPGException {
-        mapPanel.setContent(FFWorldMap.getInstance().renderViewport());
+        pnlMap.setContent(FFWorldMap.getInstance().renderViewport());
         PooledStringBuilder sb =
                 StringBuilderPool.getInstance().getStringBuilder();
         FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
-        mapDescPanel.setContent(room.getDisplayText());
+        pnlMapDesc.setContent(room.getDisplayText());
         if (!room.wasInitialTextDisplayed()) {
             room.setInitialTextDisplayed(true);
         }
@@ -192,7 +236,7 @@ public final class GameScreen extends ConsoleView {
                 null,
                 stats,
                 FFWebServiceClient.getInstance().loadText("stats_table"));
-        statsPanel.setContent(content);
+        pnlStats.setContent(content);
         stats = null;
         content = null;
     }
@@ -204,12 +248,20 @@ public final class GameScreen extends ConsoleView {
         processStatsView();
         processCommandsView();
         processMapView();
-        actionPanel.setContent(
+        pnlMsg.setContent(messageText);
+        pnlAction.setContent(
                 FFWebServiceClient.getInstance().loadText("choice"));
-        cmdsPanel.join(statsPanel, Panel.LEFT, Panel.TOP);
-        cmdsPanel.join(actionPanel, Panel.TOP, Panel.CENTER);
-        mapPanel.join(cmdsPanel, Panel.TOP, Panel.CENTER);
-        OutputEvent.getInstance().print(mapPanel.getDisplayText(), this);
+        // join command panel to left of stats panel
+        pnlCmds.join(pnlStats, Panel.LEFT, Panel.TOP);
+        // join commands panel to top of action panel
+        pnlCmds.join(pnlAction, Panel.TOP, Panel.CENTER);
+        // join room description panel to top of commands panel
+        pnlMapDesc.join(pnlCmds, Panel.TOP, Panel.CENTER);
+        // join message panel to top of room description panel
+        pnlMsg.join(pnlMapDesc, Panel.TOP, Panel.CENTER);
+        // join map panel to top of map description panel
+        pnlMap.join(pnlMsg, Panel.TOP, Panel.CENTER);
+        OutputEvent.getInstance().print(pnlMap.getDisplayText(), this);
         try {
             InputProcessor.getInstance().setInputAction(
                     this, // object

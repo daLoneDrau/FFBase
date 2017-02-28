@@ -7,7 +7,13 @@ import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.rpg.base.constants.EquipmentGlobals;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
+/**
+ * 
+ * @author 588648
+ *
+ */
 public final class FFController extends ProjectConstants<FFInteractiveObject> {
+    /** flag indicating whether menus are on. */
     private boolean menusOn;
     /** the player IO's id. */
     private int playerId = -1;
@@ -20,7 +26,7 @@ public final class FFController extends ProjectConstants<FFInteractiveObject> {
     }
     @Override
     public int getConsoleHeight() {
-        return 20;
+        return 30;
     }
     @Override
     public int getConsoleWidth() {

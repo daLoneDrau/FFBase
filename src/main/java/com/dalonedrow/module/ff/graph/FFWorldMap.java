@@ -91,7 +91,6 @@ public class FFWorldMap {
         LinkedList<GraphNode> l = search.getPath(to);
         for (int i = 0, len = l.size(); i < len; i++) {
             PhysicalGraphNode from = (PhysicalGraphNode) l.get(i);
-            System.out.println(from.getLocation());
         }
     }
     /**
@@ -222,10 +221,10 @@ public class FFWorldMap {
             }
         }
     }
-    public String renderViewport() {
+    public String renderViewport() throws RPGException {
         PooledStringBuilder sb =
                 StringBuilderPool.getInstance().getStringBuilder();
-        SimplePoint pt = getRoom(1).getMainNode().getLocation();
+        SimplePoint pt = getPlayerRoom().getMainNode().getLocation();
         int maxX = (int) (pt.getX() + 16), minX = (int) (pt.getX() - 16);
         int maxY = (int) (pt.getY() + 5), minY = (int) (pt.getY() - 5);
         minX = Math.max(minX, 0);
@@ -282,7 +281,7 @@ public class FFWorldMap {
                                     } else if (io
                                             .hasIOFlag(IoGlobals.IO_02_ITEM)) {
                                         sb.append(' ');
-                                        sb.append(Character.toUpperCase(
+                                        sb.append(Character.toLowerCase(
                                                 io.getItemData().getTitle()
                                                         .charAt(0)));
                                         sb.append(' ');
