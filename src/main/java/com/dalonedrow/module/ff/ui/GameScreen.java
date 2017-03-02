@@ -22,9 +22,11 @@ import com.dalonedrow.rpg.base.consoleui.InputProcessor;
 import com.dalonedrow.rpg.base.consoleui.OutputEvent;
 import com.dalonedrow.rpg.base.consoleui.Panel;
 import com.dalonedrow.rpg.base.consoleui.TextProcessor;
+import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.base.systems.Script;
+import com.dalonedrow.utils.ArrayUtilities;
 
 /**
  * @author 588648
@@ -68,6 +70,7 @@ public final class GameScreen extends ConsoleView {
     private FFCommandComparator commandSorter;
     /** the current index. */
     private int index;
+    private String messageText;
     /** the panel displayed. */
     private Panel panel;
     /** the panel displaying the action prompt. */
@@ -91,13 +94,14 @@ public final class GameScreen extends ConsoleView {
         final int padding = 4;
         final int mapHeight = 11, mapDescHeight = 4;
         final int statsHeight = 5, commandsHeight = 5;
+        final int msgHeight = 5;
         final int screenWidth =
                 ProjectConstants.getInstance().getConsoleWidth();
         widthStatsTable = "Stamina: 99/99".length() + padding;
         widthCommandsTable = screenWidth - widthStatsTable;
         pnlMap = new FFPanel(screenWidth, false, mapHeight, "", "");
         pnlMapDesc = new FFPanel(screenWidth, false, mapDescHeight, "", "");
-        pnlMsg = new FFPanel(screenWidth, true, 3, "", "");
+        pnlMsg = new FFPanel(screenWidth, true, msgHeight, "", "");
         pnlAction = new FFPanel(screenWidth, false, 1, "", "");
         pnlStats =
                 new FFPanel(widthStatsTable, true, statsHeight, "", "STATUS");
@@ -116,8 +120,58 @@ public final class GameScreen extends ConsoleView {
         messageText = "";
         FFInteractiveObject player =
                 ((FFController) ProjectConstants.getInstance()).getPlayerIO();
-        if (FFCommand.EAST.name().equalsIgnoreCase(s)) {
-            Script.getInstance().sendIOScriptEvent(player, 0, null, "East");
+        String[] commands = s.split(" ");
+        try {
+            FFCommand command = FFCommand.valueOf(commands[0].toUpperCase());
+            switch (command) {
+            case EAST:
+            case SOUTH:
+            case NORTH:
+            case WEST:
+                Script.getInstance().sendIOScriptEvent(player, 0, new Object[] {
+                        "travel_direction", command.toString()
+                }, "Travel");
+                break;
+            case CLIMB:
+                Script.getInstance().sendIOScriptEvent(
+                        player, 0, null, command.getEventName());
+                break;
+            case SMASH:
+                FFInteractiveObject[] ios =
+                        FFWorldMap.getInstance().getIosInRoom(
+                                FFWorldMap.getInstance().getPlayerRoom());
+                FFInteractiveObject[] doors = null;
+                if (ios != null) {
+                    for (int i = ios.length - 1; i >= 0; i--) {
+                        if (ios[i] != null
+                                && ios[i].isInGroup("DOORS")) {
+                            if (doors == null) {
+                                doors = new FFInteractiveObject[0];
+                            }
+                            doors = ArrayUtilities.getInstance().extendArray(
+                                    ios[i], doors);
+                        }
+                    }
+                }
+                if (doors != null
+                        && doors.length > 0) {
+                    if (doors.length == 1) {
+                        Script.getInstance().sendIOScriptEvent(
+                                doors[0], 0, null, command.getEventName());
+                    } else {
+                        addMessage(FFWebServiceClient.getInstance().loadText(
+                                "smash_which_door"));
+                    }
+                } else {
+                    addMessage(FFWebServiceClient.getInstance().loadText(
+                            "smash_no_door"));
+                }
+                break;
+            default:
+            }
+        } catch (IllegalArgumentException e) {
+            addMessage(FFWebServiceClient.getInstance().loadText(
+                    "invalid_input"));
         }
     }
     /**
@@ -128,7 +182,6 @@ public final class GameScreen extends ConsoleView {
         // TODO Auto-generated method stub
 
     }
-    private String messageText;
     /**
      * {@inheritDoc}
      */

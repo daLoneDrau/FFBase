@@ -236,6 +236,17 @@ public final class FFWebServiceClient extends WebServiceClient {
                 throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
             }
             sb.setLength(0);
+            // *************************************************
+            // groups
+            // *************************************************
+            if (obj.has("groups")) {
+                JsonArray groups = obj.get("groups").getAsJsonArray();
+                for (int i = groups.size() - 1; i >= 0; i--) {
+                    io.addGroup(groups.get(i).getAsJsonObject().get(
+                            "name").getAsString());
+                }
+                groups = null;
+            }
         } catch (PooledException | ClassNotFoundException e) {
             throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
         }
@@ -387,6 +398,18 @@ public final class FFWebServiceClient extends WebServiceClient {
                 FFInteractiveObject wpnIO =
                         loadItem(obj.get("weapon").getAsString());
                 wpnIO.getItemData().ARX_EQUIPMENT_Equip(io);
+                wpnIO = null;
+            }
+            // *************************************************
+            // groups
+            // *************************************************
+            if (obj.has("groups")) {
+                JsonArray groups = obj.get("groups").getAsJsonArray();
+                for (int i = groups.size() - 1; i >= 0; i--) {
+                    io.addGroup(groups.get(i).getAsJsonObject().get(
+                            "name").getAsString());
+                }
+                groups = null;
             }
         } catch (PooledException | ClassNotFoundException e) {
             throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
@@ -445,7 +468,7 @@ public final class FFWebServiceClient extends WebServiceClient {
      * @throws RPGException
      */
     public String loadText(final String section) throws RPGException {
-        String s;
+        String s = null;
         PooledStringBuilder sb =
                 StringBuilderPool.getInstance().getStringBuilder();
         try {
@@ -453,8 +476,10 @@ public final class FFWebServiceClient extends WebServiceClient {
             sb.append(super.getApiProperties().getProperty("textApi"));
             sb.append("name/");
             sb.append(section.replaceAll(" ", "%20"));
-            String response = getResponse(sb.toString());
+            s = sb.toString();
             sb.returnToPool();
+            sb = null;
+            String response = getResponse(s);
             Gson gson = new Gson();
             JsonObject obj = gson.fromJson(
                     response, JsonArray.class).get(0).getAsJsonObject();
@@ -469,6 +494,9 @@ public final class FFWebServiceClient extends WebServiceClient {
             }
         } catch (PooledException e) {
             throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        } catch (IndexOutOfBoundsException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR,
+                    "Could not load request " + s, e);
         }
         sb = null;
         return s;

@@ -8,6 +8,7 @@ import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.scripts.pc.Hero;
 import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
+import com.dalonedrow.rpg.base.systems.Script;
 import com.dalonedrow.utils.ArrayUtilities;
 
 /**
@@ -41,7 +42,12 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         // TODO Auto-generated method stub
 
     }
-
+    /**
+     * Gets the IO that occupies a specific position.  No two IOs can occupy
+     * the same position.
+     * @param pt the {@link SimplePoint}
+     * @return {@link FFInteractiveObject}
+     */
     public FFInteractiveObject getIoAtPosition(final SimplePoint pt) {
         FFInteractiveObject io = null;
         for (int i = objs.length - 1; i >= 0; i--) {
@@ -100,7 +106,7 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         return io;
     }
     /**
-     * Gets a new Player IO
+     * Gets a new Player IO.
      * @return {@link FFInteractiveObject}
      * @throws RPGException
      */
@@ -113,6 +119,7 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         ((FFController) ProjectConstants.getInstance())
                 .setPlayer(io.getRefId());
         io.setScript(new Hero(io));
+        Script.getInstance().sendInitScriptEvent(io);
         return io;
     }
     /**

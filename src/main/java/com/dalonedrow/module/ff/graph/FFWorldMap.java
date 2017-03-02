@@ -27,7 +27,10 @@ import com.dalonedrow.rpg.graph.GraphNode;
 import com.dalonedrow.rpg.graph.PhysicalGraphNode;
 import com.dalonedrow.utils.ArrayUtilities;
 
-public class FFWorldMap {
+/**
+ * @author 588648
+ */
+public final class FFWorldMap {
     /** the one and only instance of the <tt>Script</tt> class. */
     private static FFWorldMap instance;
     /**
@@ -76,8 +79,65 @@ public class FFWorldMap {
         getRoom(roomNumber).addNode(node, isMain);
         node.setRoomNumber(roomNumber);
     }
-    public void getPath(final GraphNode source, GraphNode to)
-            throws RPGException {
+    /**
+     * Gets all IOs along a path. If no path exists or no IOs are on the path
+     * <tt>null</tt> is returned.
+     * @param source the source {@link GraphNode}
+     * @param to the destination {@link GraphNode}
+     * @return {@link FFInteractiveObject}[]
+     */
+    public FFInteractiveObject[] getIosAlongPath(final GraphNode source,
+            final GraphNode to) {
+        FFInteractiveObject[] ios = null;
+        LinkedList<GraphNode> l = getPath(source, to);
+        if (l != null) {
+            for (int i = 0, len = l.size(); i < len; i++) {
+                PhysicalGraphNode from = (PhysicalGraphNode) l.get(i);
+                FFInteractiveObject io =
+                        ((FFInteractive) Interactive.getInstance())
+                                .getIoAtPosition(
+                                        from.getLocation());
+                if (ios == null) {
+                    ios = new FFInteractiveObject[0];
+                }
+                if (io != null) {
+                    ios = ArrayUtilities.getInstance().extendArray(io, ios);
+                }
+            }
+        }
+        return ios;
+    }
+    /**
+     * Gets all IOs in a room. If no no IOs are in the room <tt>null</tt> is
+     * returned.
+     * @param room the {@link FFRoomNode}
+     * @return {@link FFInteractiveObject}[]
+     */
+    public FFInteractiveObject[] getIosInRoom(final FFRoomNode room) {
+        FFInteractiveObject[] ios = null;
+        PhysicalGraphNode[] nodes = room.getNodes();
+        for (int i = nodes.length - 1; i >= 0; i--) {
+            FFInteractiveObject io =
+                    ((FFInteractive) Interactive.getInstance())
+                            .getIoAtPosition(nodes[i].getLocation());
+            if (ios == null) {
+                ios = new FFInteractiveObject[0];
+            }
+            if (io != null) {
+                ios = ArrayUtilities.getInstance().extendArray(io, ios);
+            }
+        }
+        return ios;
+    }
+    /**
+     * Gets the best path between two graph nodes.
+     * @param source the source {@link GraphNode}
+     * @param to the destination {@link GraphNode}
+     * @return {@link LinkedList}<{@link GraphNode}>
+     * @throws RPGException if an error occurs
+     */
+    private LinkedList<GraphNode> getPath(final GraphNode source,
+            final GraphNode to) {
         /*
          * DijkstraUndirectedSearch search = new DijkstraUndirectedSearch(graph,
          * source.getIndex()); WeightedGraphEdge[] edges =
@@ -89,9 +149,7 @@ public class FFWorldMap {
         DijkstraAlgorithm search = new DijkstraAlgorithm(graph);
         search.execute(source);
         LinkedList<GraphNode> l = search.getPath(to);
-        for (int i = 0, len = l.size(); i < len; i++) {
-            PhysicalGraphNode from = (PhysicalGraphNode) l.get(i);
-        }
+        return l;
     }
     /**
      * Gets the room the player is occupying.
@@ -153,6 +211,27 @@ public class FFWorldMap {
             }
         }
         return room;
+    }
+    /**
+     * Determines if a path exists between two nodes.
+     * @param source the source {@link GraphNode}
+     * @param to the destination {@link GraphNode}
+     * @return <tt>true</tt> if a path exists between the nodes; <tt>false</tt>
+     *         otherwise
+     * @throws RPGException if an error occurs
+     */
+    public boolean hasPath(final GraphNode source, final GraphNode to)
+            throws RPGException {
+        boolean has = false;
+        LinkedList<GraphNode> l = getPath(source, to);
+        if (l != null) {
+            has = true;
+            // for (int i = 0, len = l.size(); i < len; i++) {
+            // PhysicalGraphNode from = (PhysicalGraphNode) l.get(i);
+            // System.out.println(from.getLocation());
+            // }
+        }
+        return has;
     }
     /**
      * Determines if the map has a room by a specific number.
@@ -221,6 +300,11 @@ public class FFWorldMap {
             }
         }
     }
+    /**
+     * Renders the viewport in a {@link String}.
+     * @return {@link String}
+     * @throws RPGException if an error occurs
+     */
     public String renderViewport() throws RPGException {
         PooledStringBuilder sb =
                 StringBuilderPool.getInstance().getStringBuilder();

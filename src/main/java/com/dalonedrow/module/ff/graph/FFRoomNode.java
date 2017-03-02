@@ -45,10 +45,14 @@ public class FFRoomNode {
         nodes = new PhysicalGraphNode[0];
         commands = new ArrayList<FFCommand>();
     }
-    public void addCommand(final FFCommand ffCommand) {
-        if (ffCommand != null
-                && !commands.contains(ffCommand)) {
-            commands.add(ffCommand);
+    /**
+     * Adds a command to the list of available choices.
+     * @param command the new {@link FFCommand}
+     */
+    public void addCommand(final FFCommand command) {
+        if (command != null
+                && !commands.contains(command)) {
+            commands.add(command);
         }
     }
     /**
@@ -127,6 +131,13 @@ public class FFRoomNode {
         return node;
     }
     /**
+     * Gets all nodes in the room.
+     * @return {@link PhysicalGraphNode}[]
+     */
+    public PhysicalGraphNode[] getNodes() {
+        return nodes;
+    }
+    /**
      * Determines if a room contains a specific {@link GraphNode}.
      * @param index the {@link GraphNode}'s index
      * @return <tt>true</tt> if the room has the node; <tt>false</tt> otherwise
@@ -165,6 +176,16 @@ public class FFRoomNode {
      */
     public boolean isVisited() {
         return visited;
+    }
+    /**
+     * Removes a command to the list of available choices.
+     * @param command the old {@link FFCommand}
+     */
+    public void removeCommand(final FFCommand command) {
+        if (command != null
+                && commands.contains(command)) {
+            commands.remove(command);
+        }
     }
     /**
      * @param displayText the displayText to set

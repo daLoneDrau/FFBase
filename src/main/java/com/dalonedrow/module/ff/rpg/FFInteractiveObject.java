@@ -65,7 +65,6 @@ public class FFInteractiveObject extends BaseInteractiveObject<FFItem,
             try {
                 FFRoomNode room =
                         FFWorldMap.getInstance().getRoomByCellCoordinates(val);
-                room.setVisited(true);
                 FFRoomNode oldRoom =
                         FFWorldMap.getInstance().getRoomByCellCoordinates(
                                 super.getPosition());
@@ -86,6 +85,7 @@ public class FFInteractiveObject extends BaseInteractiveObject<FFItem,
                     sb.returnToPool();
                     sb = null;
                 }
+                room.setVisited(true);
                 room = null;
                 oldRoom = null;
             } catch (RPGException e) {

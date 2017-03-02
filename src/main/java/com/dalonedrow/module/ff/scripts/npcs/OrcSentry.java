@@ -1,5 +1,6 @@
 package com.dalonedrow.module.ff.scripts.npcs;
 
+import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.Diceroller;
 import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
@@ -7,6 +8,8 @@ import com.dalonedrow.engine.systems.base.Time;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
+import com.dalonedrow.module.ff.systems.Combat;
+import com.dalonedrow.module.ff.systems.FFController;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
 import com.dalonedrow.pooled.StringBuilderPool;
@@ -1114,8 +1117,26 @@ public class OrcSentry extends FFScriptable {
         }
         return super.onGameReady();
     }
+    private void orcSentryOnHear() throws RPGException {
+        // test player's luck
+        FFInteractiveObject plyrIO = ((FFController)
+                FFController.getInstance()).getPlayerIO();
+        if (!plyrIO.getPCData().testYourLuck(false)) {
+            // wake up the orc
+            if (getLocalVarSleeping()) {
+                setLocalVarSleeping(false);
+            }
+            System.out.println("start combat");
+            // put the player in combat.
+            Combat.getInstance().addEnemy(super.getIO());
+        }
+    }
     @Override
     public int onHear() throws RPGException {
+        String name = new String(super.getIO().getNPCData().getName());
+        if ("ORC_SENTRY".equalsIgnoreCase(name)) {
+            orcSentryOnHear();
+        } else {
         if (!getLocalVarControlsOff()
                 && !getLocalVarConfused()) {
             // if no noise during 2 minutes, reinit the ON HEAR
@@ -1282,6 +1303,8 @@ public class OrcSentry extends FFScriptable {
                 }
             }
         }
+        }
+        name = null;
         return super.onHear();
     }
     /*
@@ -1447,6 +1470,11 @@ public class OrcSentry extends FFScriptable {
             Script.getInstance().startTimer(timerParams);
             timerParams = null;
         }
+        String name = new String(super.getIO().getNPCData().getName());
+        if ("ORC_SENTRY".equalsIgnoreCase(name)) {
+            super.getIO().setPosition(new SimpleVector2(636, 1338));
+        }
+        name = null;
         return super.onInitEnd();
     }
     @Override

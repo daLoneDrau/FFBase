@@ -16,6 +16,7 @@ public class Main {
             new FFSpellController();
             new FFText();
             new FFGUI();
+            new Combat();
             FFWorldMap.getInstance().load();
             GameCycle.getInstance();
             // create new hero
