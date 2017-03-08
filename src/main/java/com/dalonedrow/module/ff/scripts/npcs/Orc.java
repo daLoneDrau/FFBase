@@ -5,11 +5,13 @@ import com.dalonedrow.engine.systems.base.Diceroller;
 import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
 import com.dalonedrow.engine.systems.base.Time;
+import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
 import com.dalonedrow.module.ff.systems.Combat;
 import com.dalonedrow.module.ff.systems.FFController;
+import com.dalonedrow.module.ff.ui.CombatScreen;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
 import com.dalonedrow.pooled.StringBuilderPool;
@@ -32,7 +34,7 @@ import com.dalonedrow.rpg.base.systems.Script;
  * @author drau
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class OrcSentry extends FFScriptable {
+public class Orc extends FFScriptable {
     /** FIGHTING MODE FLEE. */
     private static final int FM_FLEE = 2;
     /** constant for NO HELPING BUDDY. */
@@ -53,7 +55,7 @@ public class OrcSentry extends FFScriptable {
      * Creates a new instance of {@link OrcCleaverScript}.
      * @param io the IO associated with the script
      */
-    public OrcSentry(final FFInteractiveObject io) {
+    public Orc(final FFInteractiveObject io) {
         super(io);
     }
     private void attackPlayer() throws RPGException {
@@ -445,6 +447,9 @@ public class OrcSentry extends FFScriptable {
     private String getLocalVarHail() throws RPGException {
         return super.getLocalStringVariableValue("hail");
     }
+    private boolean getLocalVarHearEverything() throws RPGException {
+        return super.getLocalIntVariableValue("hear_everything") == 1;
+    }
     private String getLocalVarHelp() throws RPGException {
         return super.getLocalStringVariableValue("help");
     }
@@ -624,8 +629,14 @@ public class OrcSentry extends FFScriptable {
      * @throws RPGException if an error occurs
      */
     private void initLocalSpeech() throws RPGException {
-        setLocalSpeechAggression(FFWebServiceClient.getInstance().loadText(
-                "orc_sentry_aggression"));
+        String name = new String(super.getIO().getNPCData().getName());
+        if ("ORC_SENTRY_2".equalsIgnoreCase(name)) {
+            setLocalSpeechAggression(FFWebServiceClient.getInstance().loadText(
+                    "orc_sentry_2_aggression_2"));
+        } else {
+            setLocalSpeechAggression(FFWebServiceClient.getInstance().loadText(
+                    "orc_sentry_aggression"));
+        }
         setLocalSpeechDying(FFWebServiceClient.getInstance().loadText(
                 "orc_sentry_dying"));
         setLocalSpeechMisc("");
@@ -654,6 +665,7 @@ public class OrcSentry extends FFScriptable {
         setLocalVarControlsOff(false);
         // if life < cowardice, NPC flees
         setLocalVarCowardice(0);
+        setLocalVarHearEverything(false);
         // to avoid to many CALL_FOR_HELP events
         setLocalVarLastCallForHelp(0);
         // the last ouch damage to occur
@@ -675,6 +687,16 @@ public class OrcSentry extends FFScriptable {
         setLocalVarSpotted(false);
         // the last 'summoned' ouch damage to occur
         setLocalVarSummonedOuch(0);
+        String name = new String(super.getIO().getNPCData().getName());
+        if (name.startsWith("ORC_SENTRY")) {
+            setLocalVarEnemy(true);
+        } else {
+            setLocalVarEnemy(false);
+        }
+        if (name.equals("ORC_SENTRY_2")) {
+            setLocalVarEscapeFirstRound(true);
+        }
+        name = null;
     }
     private void lookFor() throws RPGException {
         if (!getLocalVarControlsOff()) {
@@ -702,7 +724,7 @@ public class OrcSentry extends FFScriptable {
                     super.setLocalVariable("looking_for", 2);
                     super.setLocalVariable("fighting_mode", 0);
                     super.removeDisallowedEvent(ScriptConsts.DISABLE_HEAR);
-                    setLocalVarReflectionMode(OrcSentry.RM_SEARCH);
+                    setLocalVarReflectionMode(Orc.RM_SEARCH);
                     // TIMERhome 1 18 GOTO GO_HOME
                     ScriptTimerInitializationParameters<
                             FFInteractiveObject> timerParams =
@@ -807,12 +829,18 @@ public class OrcSentry extends FFScriptable {
         if (getLocalVarType().equalsIgnoreCase("human_guard_ss")) {
             Script.getInstance().setGlobalVariable("DISSIDENT_ENEMY", 1);
         }
-        if (getLocalVarSleeping()) {
-            setLocalVarSleeping(false);
-            Script.getInstance().speak(super.getIO(),
-                    new SpeechParameters("", getLocalSpeechAggression()));
+        String name = new String(super.getIO().getNPCData().getName());
+        if ("ORC_SENTRY".equalsIgnoreCase(name)) {
+            orcSentryOnHear();
+        } else {
+            if (getLocalVarSleeping()) {
+                setLocalVarSleeping(false);
+                Script.getInstance().speak(super.getIO(),
+                        new SpeechParameters("", getLocalSpeechAggression()));
+            }
+            ouchStart();
         }
-        ouchStart();
+        name = null;
         return super.onAggression();
     }
     @Override
@@ -1053,6 +1081,7 @@ public class OrcSentry extends FFScriptable {
     }
     @Override
     public int onDie() throws RPGException {
+        System.out.println("onDie");
         // turn off chat
         super.assignDisallowedEvent(ScriptConsts.DISABLE_CHAT);
         callForHelp();
@@ -1079,6 +1108,18 @@ public class OrcSentry extends FFScriptable {
             // IF (§stolen_gold == 0) ACCEPT
             // INVENTORY ADDMULTI "Jewelry\\Gold_coin\\Gold_coin" ~§stolen_gold~
         }
+        String name = new String(super.getIO().getNPCData().getName());
+        if (name.startsWith("ORC_SENTRY")) {
+            super.getIO().getNPCData().setTitle("DEAD ORC");
+            if ("ORC_SENTRY_2".equalsIgnoreCase(name)) {
+                FFWorldMap.getInstance().getRoom(82).setDisplayText(
+                        FFWebServiceClient.getInstance().loadText("82_TERTIARY"));
+            } else {
+                FFWorldMap.getInstance().getRoom(71).setDisplayText(
+                        FFWebServiceClient.getInstance().loadText("71_TERTIARY"));
+            }
+        }
+        name = null;
         return super.onDie();
     }
     @Override
@@ -1117,192 +1158,203 @@ public class OrcSentry extends FFScriptable {
         }
         return super.onGameReady();
     }
-    private void orcSentryOnHear() throws RPGException {
-        // test player's luck
-        FFInteractiveObject plyrIO = ((FFController)
-                FFController.getInstance()).getPlayerIO();
-        if (!plyrIO.getPCData().testYourLuck(false)) {
-            // wake up the orc
-            if (getLocalVarSleeping()) {
-                setLocalVarSleeping(false);
-            }
-            System.out.println("start combat");
-            // put the player in combat.
-            Combat.getInstance().addEnemy(super.getIO());
-        }
-    }
     @Override
     public int onHear() throws RPGException {
         String name = new String(super.getIO().getNPCData().getName());
-        if ("ORC_SENTRY".equalsIgnoreCase(name)) {
+        if (name.startsWith("ORC_SENTRY")) {
             orcSentryOnHear();
         } else {
-        if (!getLocalVarControlsOff()
-                && !getLocalVarConfused()) {
-            // if no noise during 2 minutes, reinit the ON HEAR
-            long tmp = Script.getInstance().getGameSeconds();
-            tmp -= super.getLocalLongVariableValue("snd_tim");
-            if (tmp > 120) {
-                setLocalVarNoiseHeard(2);
-                super.setLocalVariable("noise_heard", 2);
-                super.setLocalVariable("snd_tim",
-                        Script.getInstance().getGlobalLongVariableValue(
-                                "GAMESECONDS"));
-            }
-            if (getLocalVarSleeping()) {
-                setLocalVarSleeping(false);
-            } else {
-                boolean gotoAccept = false;
-                if (getLocalVarEnemy()
-                        && super.getLocalIntVariableValue("force_hear") == 0) {
-                    gotoAccept = true;
+            if (!getLocalVarControlsOff()
+                    && !getLocalVarConfused()) {
+                // if no noise during 2 minutes, reinit the ON HEAR
+                long tmp = Script.getInstance().getGameSeconds();
+                tmp -= super.getLocalLongVariableValue("snd_tim");
+                if (tmp > 120) {
+                    setLocalVarNoiseHeard(2);
+                    super.setLocalVariable("noise_heard", 2);
+                    super.setLocalVariable("snd_tim",
+                            Script.getInstance().getGlobalLongVariableValue(
+                                    "GAMESECONDS"));
                 }
-                if (!gotoAccept
-                        && !getLocalVarPlayerInSight()
-                        && super.getLocalIntVariableValue("panicmode") != 2) {
-                    if (super.getLocalIntVariableValue("looking_for") >= 1) {
-                        attackPlayer();
-                    } else if (super.getLocalIntVariableValue(
-                            "fighting_mode") >= 1) {
-                        playerDetected();
-                    } else {
-                        if (Script.getInstance().getEventSender()
-                                .getRefId() == ProjectConstants.getInstance()
-                                        .getPlayer()) {
-                            // IF (^PLAYERSPELL_INVISIBILITY == 1) {
-                            lookForSuite();
-                            // }
-                        } else if (Script.getInstance().getEventSender()
-                                .getRefId() == super.getLocalIntVariableValue(
-                                        "last_heard")) {
-                            tmp = Script.getInstance()
-                                    .getGlobalLongVariableValue(
-                                            "GAMESECONDS");
-                            tmp -= super.getLocalLongVariableValue("snd_tim");
-                            if (tmp < 2) {
-                                gotoAccept = true;
+                if (getLocalVarSleeping()) {
+                    setLocalVarSleeping(false);
+                } else {
+                    boolean gotoAccept = false;
+                    if (getLocalVarEnemy()
+                            && super.getLocalIntVariableValue(
+                                    "force_hear") == 0) {
+                        gotoAccept = true;
+                    }
+                    if (!gotoAccept
+                            && !getLocalVarPlayerInSight()
+                            && super.getLocalIntVariableValue(
+                                    "panicmode") != 2) {
+                        if (super.getLocalIntVariableValue(
+                                "looking_for") >= 1) {
+                            attackPlayer();
+                        } else if (super.getLocalIntVariableValue(
+                                "fighting_mode") >= 1) {
+                            playerDetected();
+                        } else {
+                            if (Script.getInstance().getEventSender()
+                                    .getRefId() == ProjectConstants
+                                            .getInstance()
+                                            .getPlayer()) {
+                                // IF (^PLAYERSPELL_INVISIBILITY == 1) {
+                                lookForSuite();
+                                // }
+                            } else if (Script.getInstance().getEventSender()
+                                    .getRefId() == super.getLocalIntVariableValue(
+                                            "last_heard")) {
+                                tmp = Script.getInstance()
+                                        .getGlobalLongVariableValue(
+                                                "GAMESECONDS");
+                                tmp -= super.getLocalLongVariableValue(
+                                        "snd_tim");
+                                if (tmp < 2) {
+                                    gotoAccept = true;
+                                }
                             }
-                        }
-                        if (!gotoAccept) {
-                            // turn off the 'heard' timer
-                            Script.getInstance().timerClearByNameAndIO("heard",
-                                    super.getIO());
-                            super.setLocalVariable("noise_heard",
-                                    super.getLocalIntVariableValue(
-                                            "noise_heard") + 1);
-                            if (super.getLocalIntVariableValue(
-                                    "noise_heard") > 3) {
-                                playerDetected();
-                            } else {
-                                super.setLocalVariable("last_heard",
-                                        Script.getInstance().getEventSender()
-                                                .getRefId());
-                                super.setLocalVariable("snd_tim",
-                                        Script.getInstance()
-                                                .getGlobalLongVariableValue(
-                                                        "GAMESECONDS"));
-                                if (super.getLocalIntVariableValue(
-                                        "panicmode") != 2) {
-                                    super.setLocalVariable("panicmode", 1);
-                                }
-                                setLocalVarReflectionMode(RM_NOTHING);
-                                // turn off the 'quiet' timer
+                            if (!gotoAccept) {
+                                // turn off the 'heard' timer
                                 Script.getInstance().timerClearByNameAndIO(
-                                        "quiet",
+                                        "heard",
                                         super.getIO());
-                                saveBehavior();
-                                if (Diceroller.getInstance().rolldX(2) == 1) {
-                                    Script.getInstance().speak(super.getIO(),
-                                            new SpeechParameters("A",
-                                                    super.getLocalStringVariableValue(
-                                                            "heardnoise")));
-                                }
+                                super.setLocalVariable("noise_heard",
+                                        super.getLocalIntVariableValue(
+                                                "noise_heard") + 1);
                                 if (super.getLocalIntVariableValue(
-                                        "noise_heard") == 1) {
-                                    // BEHAVIOR NONE
-                                    super.behavior(
-                                            new BehaviorParameters("NONE", 0));
-                                    super.setTarget(
-                                            new TargetParameters("NONE"));
-                                    super.behavior(
-                                            new BehaviorParameters("FRIENDLY",
-                                                    0));
-                                    BaseInteractiveObject senderIO =
-                                            Script.getInstance()
-                                                    .getEventSender();
-                                    if (senderIO
-                                            .hasIOFlag(IoGlobals.IO_01_PC)) {
-                                        super.setTarget(
-                                                new TargetParameters("PLAYER"));
-                                    } else if (senderIO
-                                            .hasIOFlag(IoGlobals.IO_03_NPC)) {
-                                        super.setTarget(
-                                                new TargetParameters(new String(
-                                                        senderIO.getNPCData()
-                                                                .getName())));
-                                    } else if (senderIO
-                                            .hasIOFlag(IoGlobals.IO_02_ITEM)) {
-                                        super.setTarget(
-                                                new TargetParameters(new String(
-                                                        senderIO.getItemData()
-                                                                .getItemName())));
-                                    }
-                                    System.out.println(
-                                            "turning to face the sound");
-                                    // TIMERheard 0 1 goto checkplayerdist
-                                    ScriptTimerInitializationParameters timerParams =
-                                            new ScriptTimerInitializationParameters();
-                                    timerParams.setName("colplayer");
-                                    timerParams.setScript(this);
-                                    timerParams.setIo(super.getIO());
-                                    timerParams.setMilliseconds(6000);
-                                    timerParams.setStartTime(
-                                            Time.getInstance().getGameTime());
-                                    timerParams.setRepeatTimes(1);
-                                    timerParams.setObj(this);
-                                    try {
-                                        timerParams.setMethod(getClass()
-                                                .getMethod("goBackToGuard"));
-                                    } catch (NoSuchMethodException
-                                            | SecurityException e) {
-                                        throw new RPGException(
-                                                ErrorMessage.INTERNAL_BAD_ARGUMENT,
-                                                e);
-                                    }
-                                    Script.getInstance()
-                                            .startTimer(timerParams);
-                                    timerParams = null;
+                                        "noise_heard") > 3) {
+                                    playerDetected();
                                 } else {
-                                    // here we have a new sound source -> go to
-                                    // see what it was
-                                    System.out.println("going to sound");
-                                    super.behavior(
-                                            new BehaviorParameters("MOVE_TO",
-                                                    0));
-                                    PooledStringBuilder sb = StringBuilderPool
-                                            .getInstance().getStringBuilder();
-                                    try {
-                                        sb.append("-n OBJECT_");
-                                        sb.append(
-                                                super.getLocalStringVariableValue(
-                                                        "last_heard"));
-                                    } catch (PooledException e) {
-                                        throw new RPGException(
-                                                ErrorMessage.INTERNAL_ERROR, e);
+                                    super.setLocalVariable("last_heard",
+                                            Script.getInstance()
+                                                    .getEventSender()
+                                                    .getRefId());
+                                    super.setLocalVariable("snd_tim",
+                                            Script.getInstance()
+                                                    .getGlobalLongVariableValue(
+                                                            "GAMESECONDS"));
+                                    if (super.getLocalIntVariableValue(
+                                            "panicmode") != 2) {
+                                        super.setLocalVariable("panicmode", 1);
                                     }
-                                    super.setTarget(new TargetParameters(
-                                            sb.toString()));
-                                    sb.returnToPool();
-                                    sb = null;
-                                    super.getIO().getNPCData()
-                                            .setMovemode(IoGlobals.WALKMODE);
+                                    setLocalVarReflectionMode(RM_NOTHING);
+                                    // turn off the 'quiet' timer
+                                    Script.getInstance().timerClearByNameAndIO(
+                                            "quiet",
+                                            super.getIO());
+                                    saveBehavior();
+                                    if (Diceroller.getInstance()
+                                            .rolldX(2) == 1) {
+                                        Script.getInstance().speak(
+                                                super.getIO(),
+                                                new SpeechParameters("A",
+                                                        super.getLocalStringVariableValue(
+                                                                "heardnoise")));
+                                    }
+                                    if (super.getLocalIntVariableValue(
+                                            "noise_heard") == 1) {
+                                        // BEHAVIOR NONE
+                                        super.behavior(
+                                                new BehaviorParameters("NONE",
+                                                        0));
+                                        super.setTarget(
+                                                new TargetParameters("NONE"));
+                                        super.behavior(
+                                                new BehaviorParameters(
+                                                        "FRIENDLY",
+                                                        0));
+                                        BaseInteractiveObject senderIO =
+                                                Script.getInstance()
+                                                        .getEventSender();
+                                        if (senderIO
+                                                .hasIOFlag(
+                                                        IoGlobals.IO_01_PC)) {
+                                            super.setTarget(
+                                                    new TargetParameters(
+                                                            "PLAYER"));
+                                        } else if (senderIO
+                                                .hasIOFlag(
+                                                        IoGlobals.IO_03_NPC)) {
+                                            super.setTarget(
+                                                    new TargetParameters(
+                                                            new String(
+                                                                    senderIO.getNPCData()
+                                                                            .getName())));
+                                        } else if (senderIO
+                                                .hasIOFlag(
+                                                        IoGlobals.IO_02_ITEM)) {
+                                            super.setTarget(
+                                                    new TargetParameters(
+                                                            new String(
+                                                                    senderIO.getItemData()
+                                                                            .getItemName())));
+                                        }
+                                        System.out.println(
+                                                "turning to face the sound");
+                                        // TIMERheard 0 1 goto checkplayerdist
+                                        ScriptTimerInitializationParameters timerParams =
+                                                new ScriptTimerInitializationParameters();
+                                        timerParams.setName("colplayer");
+                                        timerParams.setScript(this);
+                                        timerParams.setIo(super.getIO());
+                                        timerParams.setMilliseconds(6000);
+                                        timerParams.setStartTime(
+                                                Time.getInstance()
+                                                        .getGameTime());
+                                        timerParams.setRepeatTimes(1);
+                                        timerParams.setObj(this);
+                                        try {
+                                            timerParams.setMethod(getClass()
+                                                    .getMethod(
+                                                            "goBackToGuard"));
+                                        } catch (NoSuchMethodException
+                                                | SecurityException e) {
+                                            throw new RPGException(
+                                                    ErrorMessage.INTERNAL_BAD_ARGUMENT,
+                                                    e);
+                                        }
+                                        Script.getInstance()
+                                                .startTimer(timerParams);
+                                        timerParams = null;
+                                    } else {
+                                        // here we have a new sound source -> go
+                                        // to
+                                        // see what it was
+                                        System.out.println("going to sound");
+                                        super.behavior(
+                                                new BehaviorParameters(
+                                                        "MOVE_TO",
+                                                        0));
+                                        PooledStringBuilder sb =
+                                                StringBuilderPool
+                                                        .getInstance()
+                                                        .getStringBuilder();
+                                        try {
+                                            sb.append("-n OBJECT_");
+                                            sb.append(
+                                                    super.getLocalStringVariableValue(
+                                                            "last_heard"));
+                                        } catch (PooledException e) {
+                                            throw new RPGException(
+                                                    ErrorMessage.INTERNAL_ERROR,
+                                                    e);
+                                        }
+                                        super.setTarget(new TargetParameters(
+                                                sb.toString()));
+                                        sb.returnToPool();
+                                        sb = null;
+                                        super.getIO().getNPCData()
+                                                .setMovemode(
+                                                        IoGlobals.WALKMODE);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
         }
         name = null;
         return super.onHear();
@@ -1387,8 +1439,6 @@ public class OrcSentry extends FFScriptable {
         // SET_NPC_STAT RESISTMAGIC 10
         // SET_NPC_STAT RESISTPOISON 10
         // SET_NPC_STAT RESISTFIRE 1
-        // defines if the NPC is enemy to the player at the moment
-        setLocalVarEnemy(false);
         // when = 0, the NPC is not sure if he saw the
         // player "did that thing move over there ?"
         super.setLocalVariable("panicmode", 0);
@@ -1411,7 +1461,6 @@ public class OrcSentry extends FFScriptable {
      */
     @Override
     public int onInitEnd() throws RPGException {
-        System.out.println("onInitEnd OrcSentry");
         if (getLocalVarEnemy()) {
             // turn hearing back on
             super.removeDisallowedEvent(ScriptConsts.DISABLE_HEAR);
@@ -1474,7 +1523,11 @@ public class OrcSentry extends FFScriptable {
         if ("ORC_SENTRY".equalsIgnoreCase(name)) {
             super.getIO().setPosition(new SimpleVector2(636, 1338));
         }
+        if ("ORC_SENTRY_2".equalsIgnoreCase(name)) {
+            super.getIO().setPosition(new SimpleVector2(631, 1333));
+        }
         name = null;
+        super.getIO().setShow(1);
         return super.onInitEnd();
     }
     @Override
@@ -1642,7 +1695,7 @@ public class OrcSentry extends FFScriptable {
      */
     @Override
     public int onOuch() throws RPGException {
-        // System.out.println("on ouch");
+        System.out.println("on ouch");
         ouchStart();
         ouchSuite();
         return ScriptConsts.ACCEPT;
@@ -1654,7 +1707,6 @@ public class OrcSentry extends FFScriptable {
     }
     @Override
     public int onPlayerEnemy() throws RPGException {
-        System.out.println("PLAYER_ENEMY received");
         // player is the enemy of this group so don't send this event again !
         setLocalVarPlayerEnemySend(true);
         setLocalVarEnemy(true);
@@ -2112,15 +2164,39 @@ public class OrcSentry extends FFScriptable {
         }
         return super.onUndetectPlayer();
     }
+    private void orcSentryOnHear() throws RPGException {
+        System.out.println("orc sentry on hear");
+        // test player's luck
+        FFInteractiveObject plyrIO =
+                ((FFController) ProjectConstants.getInstance()).getPlayerIO();
+        boolean goToCombat = false;
+        if (getLocalVarSleeping()) {
+            if (getLocalVarHearEverything()
+                    || !plyrIO.getPCData().testYourLuck(false)) {
+                goToCombat = true;
+            }
+        } else if (getLocalVarEnemy()) {
+            goToCombat = true;
+        }
+        if (goToCombat) {
+            super.getIO().getNPCData().setTitle("ORC");
+            ouchStart();
+            // wake up the orc
+            setLocalVarSleeping(false);
+            // orc is now an enemy
+            setLocalVarEnemy(true);
+            // put the player in combat.
+            Combat.getInstance().addEnemy(super.getIO());
+            CombatScreen.getInstance().addMessage(getLocalSpeechAggression());
+        }
+    }
     /**
      * Starts the ouch event.
      * @throws PooledException if an error occurs
      * @throws RPGException if an error occurs
      */
     private void ouchStart() throws RPGException {
-        // System.out.print("OUCH ");
         float ouchDmg = getLocalVarSummonedOuch() + getLocalVarOuch();
-        // System.out.print(ouchDmg);
         // speak combat message first
         if (getLocalVarCombatMessage().length() > 0
                 && ouchDmg > 0) {
@@ -2130,8 +2206,6 @@ public class OrcSentry extends FFScriptable {
                                     (int) ouchDmg)));
         }
         float painThreshold = super.getIO().getNPCData().getMaxLife();
-        // System.out.print(" PAIN THRESHOLD ");
-        // System.out.println(painThreshold);
         if (ouchDmg <= 1) {
             if (Script.getInstance()
                     .getGlobalIntVariableValue("PLAYERCASTING") == 0) {
@@ -2409,7 +2483,7 @@ public class OrcSentry extends FFScriptable {
             // CLEAR_MICE_TARGET
         }
     }
-    private void setLocalSpeechAggression(final String text)
+    public void setLocalSpeechAggression(final String text)
             throws RPGException {
         super.setLocalVariable("sp_aggression", text);
     }
@@ -2484,11 +2558,63 @@ public class OrcSentry extends FFScriptable {
             super.setLocalVariable("enemy", 1);
         }
     }
+    /**
+     * Sets the flag indicating whether the player is an enemy.
+     * @param val the flag
+     * @throws RPGException if an error occurs
+     */
+    private void setLocalVarEscapeAllowed(final boolean val) throws RPGException {
+        if (!val) {
+            super.setLocalVariable("escape_allowed", 0);
+        } else {
+            super.setLocalVariable("escape_allowed", 1);
+        }
+    }
+    /**
+     * Sets the flag indicating whether the IO's enemy combatant can escape in
+     * the first round.
+     * @param val the flag
+     * @throws RPGException if an error occurs
+     */
+    private void setLocalVarEscapeFirstRound(final boolean val)
+            throws RPGException {
+        if (!val) {
+            super.setLocalVariable("escape_first_round", 0);
+        } else {
+            super.setLocalVariable("escape_first_round", 1);
+        }
+    }
+    /**
+     * Sets the flag indicating whether the IO's enemy combatant can escape 
+     * after the first round.
+     * @param val the flag
+     * @throws RPGException if an error occurs
+     */
+    private void setLocalVarEscapeAfterFirstRound(final boolean val)
+            throws RPGException {
+        if (!val) {
+            super.setLocalVariable("escape_after_first_round", 0);
+        } else {
+            super.setLocalVariable("escape_after_first_round", 1);
+        }
+    }
     private void setLocalVarFightingMode(final int val) throws RPGException {
         super.setLocalVariable("fighting_mode", val);
     }
     private void setLocalVarFleeMarker(final String val) throws RPGException {
         super.setLocalVariable("flee_marker", val);
+    }
+    /**
+     * Sets the value of the local boolean variable, 'hear_everything'.
+     * @param val the new value
+     * @throws RPGException if an error occurs
+     */
+    public void setLocalVarHearEverything(boolean val) throws RPGException {
+        if (!val) {
+            super.setLocalVariable("hear_everything", 0);
+        } else {
+            super.setLocalVariable("hear_everything", 1);
+        }
     }
     private void setLocalVarHelpingBuddy(final String val) throws RPGException {
         super.setLocalVariable("helping_buddy", val);
@@ -2628,7 +2754,7 @@ public class OrcSentry extends FFScriptable {
                         if (!getLocalVarConfused()
                                 && !Script.getInstance()
                                         .isPlayerInvisible(super.getIO())
-                                && getLocalVarReflectionMode() != OrcSentry.RM_THREAT) {
+                                && getLocalVarReflectionMode() != Orc.RM_THREAT) {
                             setLocalVarReflectionMode(RM_THREAT);
                         }
                     }

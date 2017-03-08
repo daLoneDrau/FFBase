@@ -13,6 +13,16 @@ import com.dalonedrow.rpg.base.flyweights.RPGException;
  *
  */
 public final class FFController extends ProjectConstants<FFInteractiveObject> {
+    private boolean godMode;
+    /**
+     * @param godMode the godMode to set
+     */
+    public void setGodMode(boolean godMode) {
+        this.godMode = godMode;
+    }
+    public boolean godMode() {
+        return godMode;
+    }
     /** flag indicating whether menus are on. */
     private boolean menusOn;
     /** the player IO's id. */

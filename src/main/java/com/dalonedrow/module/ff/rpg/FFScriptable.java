@@ -36,7 +36,7 @@ public abstract class FFScriptable extends Scriptable<FFInteractiveObject> {
      * @return {link int}
      * @throws RPGException if an error occurs
      */
-    public int onEnterRoom() {
+    public int onEnterRoom() throws RPGException {
         return ScriptConstants.ACCEPT;
     }
     /**

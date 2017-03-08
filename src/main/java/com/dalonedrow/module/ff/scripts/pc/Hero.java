@@ -1,6 +1,7 @@
 package com.dalonedrow.module.ff.scripts.pc;
 
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
+import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.module.ff.graph.FFRoomNode;
 import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
@@ -8,6 +9,7 @@ import com.dalonedrow.module.ff.rpg.FFCommand;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.module.ff.rpg.FFScriptable;
 import com.dalonedrow.module.ff.systems.Combat;
+import com.dalonedrow.module.ff.systems.FFInteractive;
 import com.dalonedrow.module.ff.ui.GameScreen;
 import com.dalonedrow.pooled.PooledException;
 import com.dalonedrow.pooled.PooledStringBuilder;
@@ -57,7 +59,8 @@ public final class Hero extends FFScriptable {
      *         otherwise
      * @throws RPGException if an error occurs
      */
-    private boolean checkPath(final PhysicalGraphNode node1, final PhysicalGraphNode node2)
+    private boolean checkPath(final PhysicalGraphNode node1,
+            final PhysicalGraphNode node2)
             throws RPGException {
         setLocalVarBlockedMessage("");
         boolean pass = false;
@@ -103,12 +106,16 @@ public final class Hero extends FFScriptable {
             break;
         case 12:
             if (!FFWorldMap.getInstance().getRoom(139).isVisited()) {
-            destination =
-                    FFWorldMap.getInstance().getRoom(139).getNode(650, 1337);
+                destination =
+                        FFWorldMap.getInstance().getRoom(139).getNode(650,
+                                1337);
             } else {
                 destination =
                         FFWorldMap.getInstance().getRoom(139).getMainNode();
             }
+            break;
+        case 82:
+            destination = FFWorldMap.getInstance().getRoom(43).getMainNode();
             break;
         case 71:
             destination = FFWorldMap.getInstance().getRoom(1).getMainNode();
@@ -129,6 +136,9 @@ public final class Hero extends FFScriptable {
             throws RPGException {
         PhysicalGraphNode destination = null;
         switch (source) {
+        case 71:
+            destination = FFWorldMap.getInstance().getRoom(43).getMainNode();
+            break;
         default:
             break;
         }
@@ -148,6 +158,9 @@ public final class Hero extends FFScriptable {
         case 1:
             setLocalVarBlockedMessage(
                     FFWebServiceClient.getInstance().loadText("1_SOUTH"));
+            break;
+        case 43:
+            destination = FFWorldMap.getInstance().getRoom(71).getMainNode();
             break;
         default:
             break;
@@ -170,6 +183,28 @@ public final class Hero extends FFScriptable {
             break;
         case 12:
             destination = FFWorldMap.getInstance().getRoom(1).getMainNode();
+            break;
+        case 43:
+            destination = FFWorldMap.getInstance().getRoom(82).getMainNode();
+            // destroy door_43
+            if (((FFInteractive) Interactive.getInstance()).getNpcByName(
+                    "DOOR_43") != null) {
+                Interactive.getInstance().ARX_INTERACTIVE_DestroyIO(
+                        ((FFInteractive) Interactive.getInstance())
+                                .getNpcByName(
+                                        "DOOR_43"));
+                // add western exit to room 43
+                FFWorldMap.getInstance().getRoom(source).addCommand(
+                        FFCommand.WEST);
+                // load orc sentry 2
+                FFInteractiveObject io =
+                        FFWebServiceClient.getInstance().loadNPC(
+                                "ORC_SENTRY_2");
+                io.setScriptLoaded(true);
+                // load box 1
+                io = FFWebServiceClient.getInstance().loadItem("BOX_1");
+                io.setScriptLoaded(true);
+            }
             break;
         case 139:
             final int x2 = 650, y = 1337;
@@ -215,6 +250,9 @@ public final class Hero extends FFScriptable {
     private float getLocalVarSummonedOuch() throws RPGException {
         return super.getLocalFloatVariableValue("SUMMONED_OUCH");
     }
+    private int getLocalVarTmpInt1() throws RPGException {
+        return super.getLocalIntVariableValue("tmp_int1");
+    }
     /**
      * Gets the value of the local variable "travel_direction".
      * @return {@link String}
@@ -222,6 +260,25 @@ public final class Hero extends FFScriptable {
      */
     private String getLocalVarTravelDirection() throws RPGException {
         return super.getLocalStringVariableValue("travel_direction");
+    }
+    private void goToRoom(final FFCommand direction, final int source,
+            final PhysicalGraphNode destination) throws RPGException {
+        // put hero in destination room
+        super.getIO().setPosition(destination.getLocation());
+        // add action text
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append(source);
+            sb.append("_");
+            sb.append(direction.toString());
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        GameScreen.getInstance().addMessage(
+                FFWebServiceClient.getInstance().loadText(sb.toString()));
+        sb.returnToPool();
+        sb = null;
     }
     /**
      * Initializes all local variables.
@@ -231,6 +288,34 @@ public final class Hero extends FFScriptable {
         setLocalVarBlockedMessage("");
         setLocalVarCombatMessage("");
         setLocalVarTravelDirection("");
+        setLocalVarTmpInt1(0);
+    }
+    /**
+     * Loads a door by its id.
+     * @param id the door's id
+     * @throws RPGException if there is an error
+     */
+    private void loadDoor(final int id) throws RPGException {
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append("DOOR_");
+            sb.append(id);
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        FFWebServiceClient.getInstance().loadNPC(
+                sb.toString()).setScriptLoaded(true);
+        sb.returnToPool();
+        sb = null;
+    }
+    /**
+     * Loads a door by its id.
+     * @param id the door's id
+     * @throws RPGException if there is an error
+     */
+    private void loadDoor(final String name) throws RPGException {
+        FFWebServiceClient.getInstance().loadNPC(name).setScriptLoaded(true);
     }
     /**
      * On IO Climb.
@@ -255,56 +340,84 @@ public final class Hero extends FFScriptable {
                 msg = "climb_139_in";
             }
             break;
-            default:
-                msg = "climb_no_where";
+        default:
+            msg = "climb_no_where";
         }
         GameScreen.getInstance().addMessage(
                 FFWebServiceClient.getInstance().loadText(msg));
         return ScriptConstants.ACCEPT;
     }
     /**
-     * On IO entering room 1.
+     * On IO entering room 43.
      * @return {@link int}
      * @throws RPGException if an error occurs
      */
-    public int onEnterRoom1() throws RPGException {
-        return ScriptConstants.ACCEPT;
-    }
-    /**
-     * On IO entering room 139.
-     * @return {@link int}
-     * @throws RPGException if an error occurs
-     */
-    public int onEnterRoom139() throws RPGException {
-        return ScriptConstants.ACCEPT;
-    }
-    /**
-     * On IO entering room 12.
-     * @return {@link int}
-     * @throws RPGException if an error occurs
-     */
-    public int onEnterRoom12() throws RPGException {
-        FFRoomNode room = FFWorldMap.getInstance().getRoom(12);
-        if (!room.isVisited()) {
-            FFInteractiveObject io =
-                    FFWebServiceClient.getInstance().loadNPC("DOOR_12");
-            io.setScriptLoaded(true);
+    @Override
+    public int onEnterRoom() throws RPGException {
+        int roomId = getLocalVarTmpInt1();
+        FFRoomNode room = FFWorldMap.getInstance().getRoom(roomId);
+        switch (roomId) {
+        case 12:
+            if (!room.isVisited()) {
+                loadDoor(roomId);
+            }
+            break;
+        case 43:
+            if (!room.isVisited()) {
+                loadDoor(roomId);
+            }
+            break;
+        case 71:
+            if (!room.isVisited()) {
+                FFWebServiceClient.getInstance().loadNPC(
+                        "ORC_SENTRY").setScriptLoaded(true);
+            }
+            break;
+        case 82:
+            // is the orc sentry not dead and awake?
+            FFInteractiveObject io = ((FFInteractive)
+                    Interactive.getInstance()).getNpcByName("ORC_SENTRY_2");
+            if (io != null
+                    && !io.getNPCData().IsDeadNPC()
+                            && io.getScript().getLocalIntVariableValue(
+                                    "sleeping") == 0) {
+                // send Hear event to the orc
+                Script.getInstance().sendIOScriptEvent(io,
+                        ScriptConstants.SM_046_HEAR, null, null);
+            }
+            io = null;
+            break;
+        default:
         }
+        setLocalVarTmpInt1(0);
+        room = null;
         return ScriptConstants.ACCEPT;
     }
-    /**
-     * On IO entering room 71.
-     * @return {@link int}
-     * @throws RPGException if an error occurs
-     */
-    public int onEnterRoom71() throws RPGException {
-        FFRoomNode room = FFWorldMap.getInstance().getRoom(12);
-        if (!room.isVisited()) {
-            FFInteractiveObject io =
-                    FFWebServiceClient.getInstance().loadNPC("ORC_SENTRY");
-            io.setScriptLoaded(true);
+    public int onEscape() throws RPGException {
+        System.out.println("escape!");
+        // combat is by room. if combat is escaped in one room,
+        // travel to the escape room
+        FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
+        int roomId = room.getId();
+        switch (roomId) {
+        case 82:
+            // change orc's aggression text
+            FFInteractiveObject io = ((FFInteractive)
+                    Interactive.getInstance()).getNpcByName("ORC_SENTRY_2");
+            io.getScript().setLocalVariable("sp_aggression",
+                    FFWebServiceClient.getInstance().loadText(
+                            "orc_sentry_2_aggression_3"));
+            // remove flag to allow escape
+            io.getScript().setLocalVariable("escape_first_round", 0);
+            io = null;
+            room.setDisplayText(FFWebServiceClient.getInstance().loadText(
+                    "82_SECONDARY"));
+            goToRoom(FFCommand.EAST, roomId, getDestinationEast(roomId));
+            break;
+        default:
         }
-        return ScriptConstants.ACCEPT;
+        room = null;
+        return ScriptConsts.ACCEPT;
     }
     /**
      * {@inheritDoc}
@@ -405,6 +518,9 @@ public final class Hero extends FFScriptable {
             throws RPGException {
         super.setLocalVariable("combat_message", val);
     }
+    private void setLocalVarTmpInt1(final int val) throws RPGException {
+        super.setLocalVariable("tmp_int1", val);
+    }
     /**
      * Sets the local variable "travel_direction".
      * @param val the variable value
@@ -442,7 +558,7 @@ public final class Hero extends FFScriptable {
             // alert NPCs of a sound event
             for (int i = npcs.length - 1; i >= 0; i--) {
                 Script.getInstance().sendIOScriptEvent(
-                        npcs[i], ScriptConstants.SM_46_HEAR, null, null);
+                        npcs[i], ScriptConstants.SM_046_HEAR, null, null);
                 if (Combat.getInstance().isOver()) {
                     // NPC didn't hear or doesn't care PC is moving.
                     // go to destination
@@ -452,24 +568,5 @@ public final class Hero extends FFScriptable {
         } else {
             goToRoom(direction, source, destination);
         }
-    }
-    private void goToRoom(final FFCommand direction, final int source,
-            final PhysicalGraphNode destination) throws RPGException {
-        // put hero in destination room
-        super.getIO().setPosition(destination.getLocation());
-        // add action text
-        PooledStringBuilder sb =
-                StringBuilderPool.getInstance().getStringBuilder();
-        try {
-            sb.append(source);
-            sb.append("_");
-            sb.append(direction.toString());
-        } catch (PooledException e) {
-            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-        }
-        GameScreen.getInstance().addMessage(
-                FFWebServiceClient.getInstance().loadText(sb.toString()));
-        sb.returnToPool();
-        sb = null;
     }
 }

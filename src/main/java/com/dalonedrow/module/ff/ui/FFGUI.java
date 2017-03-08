@@ -1,5 +1,6 @@
 package com.dalonedrow.module.ff.ui;
 
+import com.dalonedrow.module.ff.systems.Combat;
 import com.dalonedrow.module.ff.systems.FFInterface;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 import com.dalonedrow.rpg.base.systems.ConsoleInterface;
@@ -16,7 +17,11 @@ public class FFGUI extends ConsoleInterface {
         if (FFInterface.getInstance().hasFlag(FFInterface.WELCOME)) {
             WelcomeScreen.getInstance().render();
         } else {
-            GameScreen.getInstance().render();
+            if (!Combat.getInstance().isOver()) {
+                CombatScreen.getInstance().render();
+            } else {
+                GameScreen.getInstance().render();
+            }
         }
     }
 }

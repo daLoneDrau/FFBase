@@ -71,19 +71,10 @@ public class FFInteractiveObject extends BaseInteractiveObject<FFItem,
                 if (oldRoom != null
                         && room.getId() != oldRoom.getId()) {
                     // player is entering different room
-                    PooledStringBuilder sb =
-                            StringBuilderPool.getInstance().getStringBuilder();
-                    try {
-                        sb.append("EnterRoom");
-                        sb.append(room.getId());
-                    } catch (PooledException e) {
-                        throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
-                    }
                     // send event
                     Script.getInstance().sendIOScriptEvent(
-                            this, 0, null, sb.toString());
-                    sb.returnToPool();
-                    sb = null;
+                            this, 0, new Object[] { "tmp_int1", room.getId() },
+                            "EnterRoom");
                 }
                 room.setVisited(true);
                 room = null;

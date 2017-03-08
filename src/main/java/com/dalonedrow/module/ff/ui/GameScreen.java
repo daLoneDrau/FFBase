@@ -3,7 +3,6 @@ package com.dalonedrow.module.ff.ui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
@@ -25,27 +24,9 @@ import com.dalonedrow.rpg.base.consoleui.TextProcessor;
 import com.dalonedrow.rpg.base.constants.IoGlobals;
 import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
+import com.dalonedrow.rpg.base.flyweights.ScriptConstants;
 import com.dalonedrow.rpg.base.systems.Script;
 import com.dalonedrow.utils.ArrayUtilities;
-
-/**
- * @author 588648
- */
-final class FFCommandComparator implements Comparator<FFCommand> {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int compare(final FFCommand o1, final FFCommand o2) {
-        int compares = 0;
-        if (o1.getSortOrder() < o2.getSortOrder()) {
-            compares = -1;
-        } else if (o1.getSortOrder() < o2.getSortOrder()) {
-            compares = 1;
-        }
-        return compares;
-    }
-}
 
 /**
  * @author 588648
@@ -66,8 +47,6 @@ public final class GameScreen extends ConsoleView {
         }
         return GameScreen.instance;
     }
-    /** command sorter. */
-    private FFCommandComparator commandSorter;
     /** the current index. */
     private int index;
     private String messageText;
@@ -92,7 +71,7 @@ public final class GameScreen extends ConsoleView {
     /** Hidden constructor. */
     private GameScreen() {
         final int padding = 4;
-        final int mapHeight = 11, mapDescHeight = 4;
+        final int mapHeight = 11, mapDescHeight = 8;
         final int statsHeight = 5, commandsHeight = 5;
         final int msgHeight = 5;
         final int screenWidth =
@@ -107,8 +86,119 @@ public final class GameScreen extends ConsoleView {
                 new FFPanel(widthStatsTable, true, statsHeight, "", "STATUS");
         pnlCmds = new FFPanel(widthCommandsTable, true, commandsHeight, "",
                 "COMMANDS");
-        commandSorter = new FFCommandComparator();
         messageText = "";
+    }
+    /**
+     * Processes an "Open" command.
+     * @throws RPGException if an error occurs
+     */
+    private void processOpen() throws RPGException {
+        FFInteractiveObject[] ios = FFWorldMap.getInstance().getIosInRoom(
+                FFWorldMap.getInstance().getPlayerRoom());
+        FFInteractiveObject[] npcs = null;
+        if (ios != null) {
+            for (int i = ios.length - 1; i >= 0; i--) {
+                if (ios[i] != null
+                        && ios[i].isInGroup("DOORS")) {
+                    if (npcs == null) {
+                        npcs = new FFInteractiveObject[0];
+                    }
+                    npcs = ArrayUtilities.getInstance().extendArray(
+                            ios[i], npcs);
+                }
+            }
+        }
+        if (npcs != null
+                && npcs.length > 0) {
+            if (npcs.length == 1) {
+                Script.getInstance().sendIOScriptEvent(
+                        npcs[0], 0, null, FFCommand.OPEN.getEventName());
+            } else {
+                addMessage(FFWebServiceClient.getInstance().loadText(
+                        "open_which_door"));
+            }
+        } else {
+            addMessage(FFWebServiceClient.getInstance().loadText(
+                    "open_no_door"));
+        }
+        ios = null;
+        npcs = null;
+    }
+    /**
+     * Processes a "Smash" command.
+     * @throws RPGException if an error occurs
+     */
+    private void processSmash() throws RPGException {
+        FFInteractiveObject[] ios = FFWorldMap.getInstance().getIosInRoom(
+                FFWorldMap.getInstance().getPlayerRoom());
+        FFInteractiveObject[] npcs = null;
+        if (ios != null) {
+            for (int i = ios.length - 1; i >= 0; i--) {
+                if (ios[i] != null
+                        && ios[i].isInGroup("DOORS")) {
+                    if (npcs == null) {
+                        npcs = new FFInteractiveObject[0];
+                    }
+                    npcs = ArrayUtilities.getInstance().extendArray(
+                            ios[i], npcs);
+                }
+            }
+        }
+        if (npcs != null
+                && npcs.length > 0) {
+            if (npcs.length == 1) {
+                Script.getInstance().sendIOScriptEvent(
+                        npcs[0], 0, null, FFCommand.SMASH.getEventName());
+            } else {
+                addMessage(FFWebServiceClient.getInstance().loadText(
+                        "smash_which_door"));
+            }
+        } else {
+            addMessage(FFWebServiceClient.getInstance().loadText(
+                    "smash_no_door"));
+        }
+        ios = null;
+        npcs = null;
+    }
+    /**
+     * Processes an "Attack" command.
+     * @throws RPGException if an error occurs
+     */
+    private void processAttack() throws RPGException {
+        FFInteractiveObject[] ios =
+                FFWorldMap.getInstance().getIosInRoom(
+                        FFWorldMap.getInstance().getPlayerRoom());
+        FFInteractiveObject[] npcs = null;
+        if (ios != null) {
+            for (int i = ios.length - 1; i >= 0; i--) {
+                if (ios[i] != null
+                        && ios[i].hasIOFlag(IoGlobals.IO_03_NPC)
+                        && !ios[i].getNPCData().IsDeadNPC()
+                        && !ios[i].isInGroup("DOORS")) {
+                    if (npcs == null) {
+                        npcs = new FFInteractiveObject[0];
+                    }
+                    npcs = ArrayUtilities.getInstance().extendArray(
+                            ios[i], npcs);
+                }
+            }
+        }
+        if (npcs != null
+                && npcs.length > 0) {
+            if (npcs.length == 1) {
+                Script.getInstance().sendIOScriptEvent(
+                        npcs[0], ScriptConstants.SM_057_AGGRESSION,
+                        null, null);
+            } else {
+                addMessage(FFWebServiceClient.getInstance().loadText(
+                        "attack_which_npc"));
+            }
+        } else {
+            addMessage(FFWebServiceClient.getInstance().loadText(
+                    "attack_no_one"));
+        }
+        ios = null;
+        npcs = null;
     }
     /**
      * Processes user input to go to the next screen.
@@ -132,40 +222,18 @@ public final class GameScreen extends ConsoleView {
                         "travel_direction", command.toString()
                 }, "Travel");
                 break;
+            case ATTACK:
+                processAttack();
+                break;
             case CLIMB:
                 Script.getInstance().sendIOScriptEvent(
                         player, 0, null, command.getEventName());
                 break;
             case SMASH:
-                FFInteractiveObject[] ios =
-                        FFWorldMap.getInstance().getIosInRoom(
-                                FFWorldMap.getInstance().getPlayerRoom());
-                FFInteractiveObject[] doors = null;
-                if (ios != null) {
-                    for (int i = ios.length - 1; i >= 0; i--) {
-                        if (ios[i] != null
-                                && ios[i].isInGroup("DOORS")) {
-                            if (doors == null) {
-                                doors = new FFInteractiveObject[0];
-                            }
-                            doors = ArrayUtilities.getInstance().extendArray(
-                                    ios[i], doors);
-                        }
-                    }
-                }
-                if (doors != null
-                        && doors.length > 0) {
-                    if (doors.length == 1) {
-                        Script.getInstance().sendIOScriptEvent(
-                                doors[0], 0, null, command.getEventName());
-                    } else {
-                        addMessage(FFWebServiceClient.getInstance().loadText(
-                                "smash_which_door"));
-                    }
-                } else {
-                    addMessage(FFWebServiceClient.getInstance().loadText(
-                            "smash_no_door"));
-                }
+                this.processSmash();
+                break;
+            case OPEN:
+                this.processOpen();
                 break;
             default:
             }
@@ -231,7 +299,38 @@ public final class GameScreen extends ConsoleView {
         commands.add(FFCommand.SEARCH);
         commands.add(FFCommand.USE);
         commands.add(FFCommand.INVENTORY);
-        Collections.sort(commands, commandSorter);
+        boolean hasDoor = false;
+        FFInteractiveObject[] ios = FFWorldMap.getInstance().getIosInRoom(
+                FFWorldMap.getInstance().getPlayerRoom());
+        if (ios != null) {
+            for (int i = ios.length - 1; i >= 0; i--) {
+                if (ios[i] != null
+                        && ios[i].isInGroup("DOORS")) {
+                    hasDoor = true;
+                    break;
+                }
+            }
+        }
+        if (hasDoor) {
+            commands.add(FFCommand.OPEN);
+            commands.add(FFCommand.SMASH);
+        }
+        boolean hasNPC = false;
+        if (ios != null) {
+            for (int i = ios.length - 1; i >= 0; i--) {
+                if (ios[i] != null
+                        && ios[i].hasIOFlag(IoGlobals.IO_03_NPC)
+                        && !ios[i].getNPCData().IsDeadNPC()
+                        && !ios[i].isInGroup("DOORS")) {
+                    hasNPC = true;
+                    break;
+                }
+            }
+        }
+        if (hasNPC) {
+            commands.add(FFCommand.ATTACK);
+        }
+        Collections.sort(commands, FFCommandComparator.getInstance());
         List<String> list = new ArrayList<String>();
         int lenw = 0;
         for (int i = 0, len = commands.size(); i < len; i++) {
@@ -270,7 +369,38 @@ public final class GameScreen extends ConsoleView {
         PooledStringBuilder sb =
                 StringBuilderPool.getInstance().getStringBuilder();
         FFRoomNode room = FFWorldMap.getInstance().getPlayerRoom();
-        pnlMapDesc.setContent(room.getDisplayText());
+        try {
+            sb.append(room.getDisplayText());
+            FFInteractiveObject[] ios =
+                    FFWorldMap.getInstance().getIosInRoom(
+                            FFWorldMap.getInstance().getPlayerRoom());
+            for (int i = 0, len = ios.length; i < len; i++) {
+                if (ios[i].hasIOFlag(IoGlobals.IO_01_PC)) {
+                    ios = ArrayUtilities.getInstance().removeIndex(i, ios);
+                    i--;
+                    len = ios.length;
+                }
+            }
+            if (ios.length > 0) {
+                sb.append("\n");
+                sb.append("You see:\t");
+                for (int i = ios.length - 1; i >= 0; i--) {
+                    if (ios.length > 1 && i < ios.length - 1) {
+                        sb.append("\t\t");
+                    }
+                    if (ios[i].hasIOFlag(IoGlobals.IO_03_NPC)) {
+                        sb.append(new String(ios[i].getNPCData().getTitle()));
+                    } else if (ios[i].hasIOFlag(IoGlobals.IO_02_ITEM)) {
+                        sb.append(new String(ios[i].getItemData().getTitle()));
+                    }
+                    sb.append("\n");
+                }
+            }
+            ios = null;
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        pnlMapDesc.setContent(sb.toString());
         if (!room.wasInitialTextDisplayed()) {
             room.setInitialTextDisplayed(true);
         }

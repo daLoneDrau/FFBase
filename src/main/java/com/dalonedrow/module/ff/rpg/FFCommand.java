@@ -25,7 +25,8 @@ public enum FFCommand {
     TALK(6),
     THROW(15),
     USE(18),
-    WEST(2);
+    WEST(2),
+    ESCAPE(20);
     /** the sort order. */
     private int sortOrder;
     /**

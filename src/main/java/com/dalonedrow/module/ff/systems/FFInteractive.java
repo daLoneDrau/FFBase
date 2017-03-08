@@ -106,6 +106,24 @@ public class FFInteractive extends Interactive<FFInteractiveObject> {
         return io;
     }
     /**
+     * Gets an NPC object by its name.
+     * @param name the name
+     * @return {@link FFInteractiveObject}
+     */
+    public FFInteractiveObject getNpcByName(final String name) {
+        FFInteractiveObject io = null;
+        for (int i = objs.length - 1; i >= 0; i--) {
+            if (objs[i] != null
+                    && objs[i].hasIOFlag(IoGlobals.IO_03_NPC)
+                    && name.equalsIgnoreCase(
+                            new String(objs[i].getNPCData().getName()))) {
+                io = objs[i];
+                break;
+            }
+        }
+        return io;
+    }
+    /**
      * Gets a new Player IO.
      * @return {@link FFInteractiveObject}
      * @throws RPGException

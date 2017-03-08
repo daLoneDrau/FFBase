@@ -14,8 +14,8 @@ public class FFSpeech extends Speech<FFInteractiveObject> {
     }
     @Override
     public int ARX_SPEECH_AddSpeech(FFInteractiveObject io, int mood,
-            String speech, long voixoff) {
-        if (true) {
+            String speech, long voixoff) throws RPGException {
+        if (!Combat.getInstance().isOver()) {
             Combat.getInstance().addMessage(Combat.MESSAGE_WARNING, speech);
         }
         return 0;

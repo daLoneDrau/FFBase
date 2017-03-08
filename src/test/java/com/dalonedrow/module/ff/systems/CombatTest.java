@@ -13,6 +13,7 @@ import org.junit.Test;
 import com.dalonedrow.engine.sprite.base.SimpleVector2;
 import com.dalonedrow.engine.systems.base.Interactive;
 import com.dalonedrow.engine.systems.base.ProjectConstants;
+import com.dalonedrow.module.ff.graph.FFWorldMap;
 import com.dalonedrow.module.ff.net.FFWebServiceClient;
 import com.dalonedrow.module.ff.rpg.FFInteractiveObject;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
@@ -28,6 +29,7 @@ public class CombatTest {
         new FFSpeech();
         new FFSpellController();
         combat = new Combat();
+        FFWorldMap.getInstance().load();
     }
     @Test
     public void canKillPlayer() throws RPGException {
@@ -277,14 +279,14 @@ public class CombatTest {
     public void canRunRandomRound() throws RPGException {
         FFInteractiveObject playerIO =
                 ((FFInteractive) Interactive.getInstance()).newHero();
-        playerIO.setPosition(new SimpleVector2());
+        playerIO.setPosition(new SimpleVector2(636,1337));
         assertTrue("Player was created", Interactive.getInstance().hasIO(
                 ProjectConstants.getInstance().getPlayer()));
         FFInteractiveObject enemyIO =
                 FFWebServiceClient.getInstance().loadNPC("ORC_SENTRY");
         // WHEN IO ADDED TO SCENE, SHOW SET TO 1, POSITION SET
         enemyIO.setShow(1);
-        enemyIO.setPosition(new SimpleVector2());
+        enemyIO.setPosition(new SimpleVector2(636,1338));
         enemyIO.setInitPosition(new SimpleVector2());
         assertEquals("enemy stamina is 5", 5,
                 enemyIO.getNPCData().getFullAttributeScore("ST"), 0.000001f);
@@ -297,6 +299,9 @@ public class CombatTest {
             System.out.print("-------------ROUND ");
             System.out.println(Script.getInstance()
                     .getGlobalIntVariableValue("COMBATROUND"));
+            if (combat.defeated()) {
+                combat.setLastMessageDisplayed(true);
+            }
         }
         System.out.println("end canRunRandomRound\n\n\n");
     }

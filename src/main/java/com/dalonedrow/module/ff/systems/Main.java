@@ -10,6 +10,8 @@ public class Main {
     public static void main(String[] args) {
         try {
             new FFController();
+            // TURN ON GOD MODE
+            ((FFController) FFController.getInstance()).setGodMode(true);
             new FFInteractive();
             new FFScript();
             new FFSpeech();

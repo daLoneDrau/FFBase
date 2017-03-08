@@ -1,6 +1,10 @@
 package com.dalonedrow.module.ff.rpg;
 
 import com.dalonedrow.module.ff.constants.FFEquipmentElements;
+import com.dalonedrow.pooled.PooledException;
+import com.dalonedrow.pooled.PooledStringBuilder;
+import com.dalonedrow.pooled.StringBuilderPool;
+import com.dalonedrow.rpg.base.flyweights.ErrorMessage;
 import com.dalonedrow.rpg.base.flyweights.IoNpcData;
 import com.dalonedrow.rpg.base.flyweights.RPGException;
 
@@ -129,6 +133,36 @@ public final class FFNpc extends IoNpcData<FFInteractiveObject> {
     public int getPoisonned() {
         // TODO Auto-generated method stub
         return 0;
+    }
+    /**
+     * Gets the status strings used in the display.
+     * @return {@link String}[]
+     * @throws RPGException if an error occurs
+     */
+    public String[] getStatusString() throws RPGException {
+        super.computeFullStats();
+        String sk = "", st = "";
+        PooledStringBuilder sb =
+                StringBuilderPool.getInstance().getStringBuilder();
+        try {
+            sb.append((int) getFullAttributeScore("SK"));
+            sb.append('/');
+            sb.append((int) getFullAttributeScore("MSK"));
+            sk = sb.toString();
+            sb.setLength(0);
+            sb.append((int) getFullAttributeScore("ST"));
+            sb.append('/');
+            sb.append((int) getFullAttributeScore("MST"));
+            st = sb.toString();
+        } catch (PooledException e) {
+            throw new RPGException(ErrorMessage.INTERNAL_ERROR, e);
+        }
+        sb.returnToPool();
+        sb = null;
+        String[] s = new String[] { new String(super.getTitle()) , sk, st };
+        sk = null;
+        st = null;
+        return s;
     }
     /**
      * {@inheritDoc}
