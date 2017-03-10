@@ -202,23 +202,32 @@ public final class FFWebServiceClient extends WebServiceClient {
             // *************************************************
             // types
             // *************************************************
-            JsonArray types = obj.get("types").getAsJsonArray();
-            for (int i = types.size() - 1; i >= 0; i--) {
-                itemData.ARX_EQUIPMENT_SetObjectType(
-                        types.get(i).getAsJsonObject().get("flag").getAsInt(),
-                        true);
+            JsonElement el = obj.get("types");
+            if (el != null) {
+                JsonArray types = el.getAsJsonArray();
+                for (int i = types.size() - 1; i >= 0; i--) {
+                    itemData.ARX_EQUIPMENT_SetObjectType(
+                            types.get(i).getAsJsonObject().get("flag").getAsInt(),
+                            true);
+                }
+                types = null;
             }
             // *************************************************
             // modifiers
             // *************************************************
-            JsonObject modifiers = obj.get("modifiers").getAsJsonObject();
-            Set<Entry<String, JsonElement>> entries = modifiers.entrySet();
-            for (Entry<String, JsonElement> entry : entries) {
-                int elementIndex =
-                        FFEquipmentElements.valueOf(entry.getKey()).getIndex();
-                itemData.getEquipitem().getElement(elementIndex).set(
-                        getModifierByCode(entry.getValue().getAsString()));
+            el = obj.get("modifiers");
+            if (el != null) {
+                JsonObject modifiers = el.getAsJsonObject();
+                Set<Entry<String, JsonElement>> entries = modifiers.entrySet();
+                for (Entry<String, JsonElement> entry : entries) {
+                    int elementIndex =
+                            FFEquipmentElements.valueOf(entry.getKey()).getIndex();
+                    itemData.getEquipitem().getElement(elementIndex).set(
+                            getModifierByCode(entry.getValue().getAsString()));
+                }
+                modifiers = null;
             }
+            el = null;
             // *************************************************
             // internal_script
             // *************************************************

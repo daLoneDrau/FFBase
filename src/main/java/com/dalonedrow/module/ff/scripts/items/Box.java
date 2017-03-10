@@ -30,7 +30,7 @@ public final class Box extends WeaponScript {
     }
     @Override
     public int onInitEnd() throws RPGException {
-        String name = new String(super.getIO().getNPCData().getName());
+        String name = new String(super.getIO().getItemData().getItemName());
         if ("BOX_1".equalsIgnoreCase(name)) {
             super.getIO().setPosition(new SimpleVector2(632, 1332));
         }
