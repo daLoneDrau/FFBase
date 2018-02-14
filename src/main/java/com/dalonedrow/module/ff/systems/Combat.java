@@ -100,7 +100,16 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
             throw new RPGException(ErrorMessage.INTERNAL_BAD_ARGUMENT,
                     "Enemy must be NPC");
         }
-        enemies = ArrayUtilities.getInstance().extendArray(io, enemies);
+        boolean found = false;
+        for (int i = enemies.length - 1; i >= 0; i--) {
+            if (io.getRefId() == enemies[i].getRefId()) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            enemies = ArrayUtilities.getInstance().extendArray(io, enemies);
+        }
         lastMessageDisplayed = false;
     }
     /**
@@ -477,19 +486,20 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
     @Override
     public void doRound() throws RPGException {
         if (enemies.length > 0) {
+            // declare variables
             String source, target;
             int msgMode;
-            // 1. get creature's Attack Strength.
             FFInteractiveObject enemyIO = enemies[0].getNPCData().getIo();
             FFNpc enemy = enemies[0].getNPCData();
-            float enemyAttackStrength = enemy.getFullAttributeScore("SK")
-                    + Diceroller.getInstance().rollXdY(2, 6);
-            // 2. get player's Attack Strength.
             FFInteractiveObject playerIO =
                     (FFInteractiveObject) Interactive.getInstance().getIO(
                             ProjectConstants.getInstance().getPlayer());
             FFCharacter pc = (FFCharacter) Interactive.getInstance().getIO(
                     ProjectConstants.getInstance().getPlayer()).getPCData();
+            // 1. get creature's Attack Strength.
+            float enemyAttackStrength = enemy.getFullAttributeScore("SK")
+                    + Diceroller.getInstance().rollXdY(2, 6);
+            // 2. get player's Attack Strength.
             float playerAttackStrength = pc.getFullAttributeScore("SK")
                     + Diceroller.getInstance().rollXdY(2, 6);
             // 3. compare attack strengths
@@ -621,7 +631,9 @@ public final class Combat extends CombatUtility<FFInteractiveObject> {
         // check to see if combat is over.
         int i = enemies.length - 1;
         for (; i >= 0; i--) {
+            System.out.println("check if dead enemy " + enemies[i].getRefId());
             if (enemies[i].getNPCData().IsDeadNPC()) {
+                System.out.println("enemy dead! removing");
                 enemies = ArrayUtilities.getInstance().removeIndex(i, enemies);
             }
         }

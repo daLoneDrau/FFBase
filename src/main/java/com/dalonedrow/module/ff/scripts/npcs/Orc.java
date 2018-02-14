@@ -223,9 +223,9 @@ public class Orc extends FFScriptable {
             setLocalVarReflectionMode(0);
             // TIMERpathfail 1 3 SET §ignorefailure 0 GOTO GO_HOME
             ScriptTimerInitializationParameters<
-                    FFInteractiveObject> timerParams =
+                    FFInteractiveObject, FFScriptable> timerParams =
                             new ScriptTimerInitializationParameters<
-                                    FFInteractiveObject>();
+                                    FFInteractiveObject, FFScriptable>();
             timerParams.setName("pathfail");
             timerParams.setScript(this);
             timerParams.setIo(super.getIO());
@@ -294,9 +294,9 @@ public class Orc extends FFScriptable {
             // set coward timer
             // TIMERcoward 1 2 SENDEVENT SPEAK_NO_REPEAT SELF "5 A £help"
             ScriptTimerInitializationParameters<
-                    FFInteractiveObject> timerParams =
+                    FFInteractiveObject, FFScriptable> timerParams =
                             new ScriptTimerInitializationParameters<
-                                    FFInteractiveObject>();
+                                    FFInteractiveObject, FFScriptable>();
             timerParams.setName("coward");
             timerParams.setScript(this);
             timerParams.setIo(super.getIO());
@@ -727,9 +727,9 @@ public class Orc extends FFScriptable {
                     setLocalVarReflectionMode(Orc.RM_SEARCH);
                     // TIMERhome 1 18 GOTO GO_HOME
                     ScriptTimerInitializationParameters<
-                            FFInteractiveObject> timerParams =
+                            FFInteractiveObject, FFScriptable> timerParams =
                                     new ScriptTimerInitializationParameters<
-                                            FFInteractiveObject>();
+                                            FFInteractiveObject, FFScriptable>();
                     timerParams.setName("home");
                     timerParams.setScript(this);
                     timerParams.setIo(super.getIO());
@@ -771,9 +771,9 @@ public class Orc extends FFScriptable {
                 }
                 // set next reflection timer
                 ScriptTimerInitializationParameters<
-                        FFInteractiveObject> timerParams =
+                        FFInteractiveObject, FFScriptable> timerParams =
                                 new ScriptTimerInitializationParameters<
-                                        FFInteractiveObject>();
+                                        FFInteractiveObject, FFScriptable>();
                 timerParams.setName("misc_reflection");
                 timerParams.setScript(this);
                 timerParams.setFlagValues(1);
@@ -1492,9 +1492,9 @@ public class Orc extends FFScriptable {
 
             // set reflection timer
             ScriptTimerInitializationParameters<
-                    FFInteractiveObject> timerParams =
+                    FFInteractiveObject, FFScriptable> timerParams =
                             new ScriptTimerInitializationParameters<
-                                    FFInteractiveObject>();
+                                    FFInteractiveObject, FFScriptable>();
             timerParams.setName("misc_reflection");
             timerParams.setScript(this);
             timerParams.setFlagValues(1);
@@ -1583,9 +1583,9 @@ public class Orc extends FFScriptable {
             // set misc_reflection timer
             // TIMERmisc_reflection -i 0 ~#TMP~ SENDEVENT MISC_REFLECTION SELF
             ScriptTimerInitializationParameters<
-                    FFInteractiveObject> timerParams =
+                    FFInteractiveObject, FFScriptable> timerParams =
                             new ScriptTimerInitializationParameters<
-                                    FFInteractiveObject>();
+                                    FFInteractiveObject, FFScriptable>();
             timerParams.setName("misc_reflection");
             timerParams.setScript(this);
             timerParams.setIo(super.getIO());
@@ -1947,9 +1947,9 @@ public class Orc extends FFScriptable {
             // set steal timer
             // TIMERsteal 1 2 GOTO ATTACK_PLAYER
             ScriptTimerInitializationParameters<
-                    FFInteractiveObject> timerParams =
+                    FFInteractiveObject, FFScriptable> timerParams =
                             new ScriptTimerInitializationParameters<
-                                    FFInteractiveObject>();
+                                    FFInteractiveObject, FFScriptable>();
             timerParams.setName("steal");
             timerParams.setScript(this);
             timerParams.setIo(super.getIO());
